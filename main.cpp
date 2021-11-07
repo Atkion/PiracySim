@@ -37,8 +37,10 @@ int main (void)
   Crewmate EnemyCrew (200, 30, 40, 10, "Enemy", "Enemy");
   EnemyShip.addCrew(&EnemyCrew); EnemyShip.addWeapon(&EnemyCannon); EnemyCannon.assignCrew(0, &EnemyCrew);
   for (int i=0; i<30; i++) 
-    if (Ballista.rollHit()) //Attack roll, adds up Weapon Accuracy + All Crew Accbonuses. Special Effects aren't implemented yet because subclasses/characters don't exist yet lol
+    if (Ballista.rollHit()) //Attack roll, adds up Weapon Accuracy + All Assigned Crew Accbonuses. Special Effects aren't implemented yet because subclasses/characters don't exist yet lol
       EnemyShip.damage(Ballista.attack(), &EnemyCannon); //Damages EnemyShip, and also Damages EnemyCannon (the target) as well as every crewmate operating it
+      //Hitting another weapon on miss is not implemented, and probably won't be at this point. Doesn't seem worth the effort, if you disagree let me know lol
+      //Also Accuracy numbers are percentage chance to hit, so if total accuracy is over 100 you will always hit.
   
   EnemyShip.printInfo();
 

@@ -62,5 +62,7 @@ class Ship {
     int* getStats();
     bool addCrew(Crewmate*);
     bool addWeapon(Weapon*);
+    bool switchCrew(Crewmate*, Crewmate*);
+    bool switchWeapon(Weapon*, Weapon*);
     void printInfo();
 };
