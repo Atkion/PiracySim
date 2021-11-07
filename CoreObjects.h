@@ -3,49 +3,57 @@
 using std::string;
 
 class Crewmate {
+  private:
+    int health, armorRating; //use getStats() to get/display
+    bool alive; //use isValid() to check
   public:
-    int health, armorRating;
-    bool alive;
+    bool occupied;
     const int accBonus, dmgBonus, maxHealth;
-    string name, desc;
+    const string name, desc;
 
-    Crewmate(int, int, int, int, string);
+    Crewmate(int, int, int, int, string, string);
     Crewmate();
 
     bool isValid();
     void damage(int);
     void printInfo();
+    void specialEffects(void (*)());
+    int* getStats();
 };
 
 class Weapon {
-  public:
+  private: 
     int atkDamage, accuracy, armorRating, health;
+    Crewmate **assignedCrew;
+  public:
     bool operational;
     const int maxHealth, crewmateSlots;
-    string name, desc;
-    Crewmate **assignedCrew;
+    const string name, desc;
 
-    Weapon (int, int, int, int, int, string);
+    Weapon (int, int, int, int, int, string, string);
     Weapon();
 
     bool isValid();
     void damage(int);
     bool rollHit();
     int attack();
-    bool assignCrew(Crewmate*);
+    bool assignCrew(int, Crewmate*);
     int* getStats();
     void printInfo();
+    void specialEffects(void (*)());
+    bool isOperational(bool);
 };
 
 class Ship {
-  public:
+  private:
     int armorRating, cargoHeld, health;
-    const int crewmateSlots, weaponSlots, cargoSize, maxHealth;
-    string name, desc;
     Crewmate **crew;
     Weapon **weapons;
+  public:
+    const string name, desc;
+    const int crewmateSlots, weaponSlots, cargoSize, maxHealth;
 
-    Ship (int, int, int, int, int, string);
+    Ship (int, int, int, int, int, string, string);
 
     void damage (int, Weapon*);
     int emptyCargo();
