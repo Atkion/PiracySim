@@ -24,11 +24,12 @@ void Crewmate::damage(int atkdmg) {
 }
 void Crewmate::printInfo() { //mostly for testing purposes.
   cout << "Crewmate Name: " << name << "\n";
-  printf("HP: %d, AR: %d, Accuracy Bonus: %d, Damage Bonus: %d\n\n", health, armorRating, accBonus, dmgBonus);
+  printf("HP: %d/%d, AR: %d, Accuracy Bonus: %d, Damage Bonus: %d\n\n", health, maxHealth, armorRating, accBonus, dmgBonus);
 }
 
 Weapon::Weapon (int hp, int dmg, int acc, int ar, int cS, string n) : 
       maxHealth(hp), crewmateSlots(cS) {
+        health = hp;
         atkDamage = dmg; accuracy = acc; armorRating = ar;
         operational = true;
         assignedCrew = new Crewmate*[crewmateSlots];
@@ -92,7 +93,7 @@ int* Weapon::getStats() {
 void Weapon::printInfo() { //mostly for testing purposes.
   int* stats = getStats();
   cout << "Weapon Name: " << name << "\n";
-  printf("HP: %d, AR: %d, Base Accuracy: %d, Base Damage: %d\n", health, armorRating, accuracy, atkDamage);
+  printf("HP: %d/%d, AR: %d, Base Accuracy: %d, Base Damage: %d\n", health, maxHealth, armorRating, accuracy, atkDamage);
   printf("Crewmate Assignment Slots Filled: %d/%d\n\n", stats[4], stats[3]);
 }
 
@@ -165,7 +166,7 @@ bool Ship::addWeapon(Weapon* w) {
 void Ship::printInfo() { //mostly for testing purposes.
   int* stats = getStats();
   cout << "Ship Name: " << name << "\n";
-  printf("HP: %d, AR: %d\n", health, armorRating);
+  printf("HP: %d/%d, AR: %d\n", health, maxHealth, armorRating);
   printf("Weapon Slots Filled: %d/%d, Crewmate Slots Filled: %d/%d\n", stats[4], stats[3], stats[6], stats[5]);
   printf("Printing Weapons: \n\n");
   for (int i=0; i<weaponSlots; i++)

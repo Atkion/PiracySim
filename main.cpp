@@ -11,7 +11,7 @@ using namespace std;
 int main (void)
 {
   setupGameWindow();
-  Ship BastardsGreed (100, 20, 4, 10, 1200, "The Bastard's Greed");
+  Ship BastardsGreed (1000, 20, 4, 10, 1200, "The Bastard's Greed");
 
   Crewmate Rhys (60, 25, 1, 8, "Rhys");
   Crewmate Creak (35, 12, 9, 5, "Creak");
