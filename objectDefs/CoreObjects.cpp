@@ -33,8 +33,8 @@ int* Crewmate::getStats() {
   return temp;
 }
 void Crewmate::printInfo() { //mostly for testing purposes.
-  cout << "Crewmate Name: " << name << ", onboard ship: " << (ship == nullptr ? "None" : ((Ship*)ship)->name) 
-  << ", assigned to weapon: " << (assignedTo == nullptr ? "None" : ((Weapon*)assignedTo)->name) << "\n";
+  cout << "Crewmate Name: " << name << ", Onboard Ship: " << (ship == nullptr ? "None" : ((Ship*)ship)->name) 
+  << ", Assigned to Weapon: " << (assignedTo == nullptr ? "None" : ((Weapon*)assignedTo)->name) << "\n";
   cout << "Description: " << desc << "\n";
   printf("HP: %d/%d, AR: %d, Accuracy Bonus: %d, Damage Bonus: %d, Occupied: %s\n\n", health, maxHealth, armorRating, accBonus, dmgBonus, occupied ? "true":"false");
 }
@@ -53,7 +53,7 @@ Weapon::Weapon() : maxHealth(0), crewmateSlots(0) {} //Default constructors for 
 bool Weapon::isValid() { //A simple check to see if the default constructor was used
   return this != nullptr && maxHealth != 0;
 }
-void Weapon::damage(int atkdmg) { //For use when a weapon TAKES damage. Should really only be called by Ship::damage(). Inflicts damage on all assigned crewmates.
+void Weapon::damage(int atkdmg) { //For use when a weapon TAKES damage. Should really only be called by Ship::damage(). Inflicts damage on all assigned crewmates as well.
   health -= ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0);
   cout << name << " has taken " << ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0) << " damage.\n";
   if (health <= 0) {
@@ -75,7 +75,8 @@ bool Weapon::rollHit() { //Adds up baseAccuracy and all crew modifiers and rolls
   }
   return false;
 }
-bool Weapon::attack() { //Adds up baseDamage and all crew modifiers and returns the total attack damage. Actually inflicting this damage should be handled along with targeting in the main combat loop.
+//This next one was going to be implemented into the combat handler instead, but I realized I could just do it from here. This should only be called from Ship::runAttacks().
+bool Weapon::attack() { //Adds up baseDamage and all the modifiers, makes an attack roll with rollHit(), and deals damage to the enemy ship and target weapon. Also does onAttack special effects.
   if (isValid() && operational) {
     int mod = 0;
     for (int i=0; i<crewmateSlots; i++)//calculate the modifier
@@ -137,7 +138,7 @@ int* Weapon::getStats() {
 }
 void Weapon::printInfo() { //mostly for testing purposes.
   int* stats = getStats();
-  cout << "Weapon Name: " << name << ", on ship: " << (ship == nullptr ? "None" : ((Ship*)ship)->name) << "\n";
+  cout << "Weapon Name: " << name << ", On Ship: " << (ship == nullptr ? "None" : ((Ship*)ship)->name) << "\n";
   cout << "Description: " << desc << "\n";
   printf("HP: %d/%d, AR: %d, Base Accuracy: %d, Base Damage: %d\n", health, maxHealth, armorRating, accuracy, atkDamage);
   printf("Crewmate Assignment Slots Filled: %d/%d, Operational: %s\n", stats[4], stats[3], isOperational() ? "true":"false");
@@ -158,7 +159,7 @@ Ship::Ship (int hp, int baseArmor, int weaponS, int crewmateS, int cargoS, strin
   }
 Ship::Ship () : maxHealth(0), weaponSlots(0), crewmateSlots(0), cargoSize(0), name(""), desc("") {} //default constructor for placeholders in arrays
 
-void Ship::damage (int atkdmg, Weapon *target) { //for when a ship TAKES damage. ONLY CALL THIS ONE from the combat handler, passing in a pointer to the target weapon. Weapon::damage should be called from here only.
+void Ship::damage (int atkdmg, Weapon *target) { //for when a ship TAKES damage. Should probably only be called by Weapon::attack(), and by extension Ship::runAttacks().
   health -= ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0);
   cout << name << " has been hit and has taken " << ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0) << " damage. ";
   cout << "Target hit: " << target->name << "\n";
@@ -222,11 +223,33 @@ bool Ship::addWeapon(Weapon* w) {//Finds an empty weapon slot and adds weaopn to
 // if a ship has 30 crew slots it doesn't really make sense to force players to figure out slots rather than just filling in crew until it's full, then switching
 // them out by name if necessary. Thoughts? Maybe we run addCrew/addWeapon, and if it returns false (it couldn't find a slot) then enter a menu where they can switch
 // using this method?
-bool Ship::switchCrew(Crewmate *out, Crewmate *in) { //todo: implement these if it turns out they're necessary
-  return true;
+bool Ship::switchCrew(int slot, Crewmate *c) {
+  if (slot<crewmateSlots && c->isValid()) {
+    if (crew[slot]->isValid()) {
+      crew[slot] -> occupied = false;
+      crew[slot] -> assignedTo = nullptr;
+      crew[slot] -> ship = nullptr;
+    }
+    crew[slot] = c;
+    crew[slot] -> occupied = false;
+    crew[slot] -> assignedTo = nullptr;
+    crew[slot] -> ship = (void*)this;
+    return true;
+  }
+  return false;
 }
-bool Ship::switchWeapon(Weapon *out, Weapon *in) { 
-  return true;
+bool Ship::switchWeapon(int slot, Weapon *w) { 
+  if (slot<weaponSlots && w->isValid()) {
+    if (weapons[slot]->isValid()) {
+      weapons[slot] -> target = nullptr;
+      weapons[slot] -> ship = nullptr;
+    }
+    weapons[slot] = w;
+    weapons[slot] -> target = nullptr;
+    weapons[slot] -> ship = (void*)this;
+    return true;
+  }
+  return false;
 }
 void Ship::runAttacks() {
   for (int i=0; i<weaponSlots; i++)

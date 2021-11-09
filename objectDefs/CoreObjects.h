@@ -72,8 +72,8 @@ class Ship {
     int* getStats();
     bool addCrew(Crewmate*);
     bool addWeapon(Weapon*);
-    bool switchCrew(Crewmate*, Crewmate*);
-    bool switchWeapon(Weapon*, Weapon*);
+    bool switchCrew(int, Crewmate*);
+    bool switchWeapon(int, Weapon*);
     virtual void runAttacks();
     virtual void printInfo();
     Crewmate** getCrew();
