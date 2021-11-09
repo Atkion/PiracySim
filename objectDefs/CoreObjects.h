@@ -3,32 +3,38 @@
 using std::string;
 
 class Crewmate {
-  private:
+  protected:
     int health, armorRating; //use getStats() to get/display
     bool alive; //use isValid() to check
   public:
     bool occupied;
+    void* ship; //YES I KNOW HOW SCUFFED THESE ARE, I had to do this because the ship and weapon classes aren't defined yet so I can't have pointers to them
+    void* assignedTo;
     const int accBonus, dmgBonus, maxHealth;
     const string name, desc;
+    enum specialTypes {none, eachAttack, eachTurn} specialType; //add more options to this as need be
 
     Crewmate(int, int, int, int, string, string);
     Crewmate();
 
     bool isValid();
     void damage(int);
-    void printInfo();
-    void specialEffects(void (*)());
+    virtual void printInfo();
+    virtual void specialEffects() {}; //keep this empty, it's meant to be overloaded by subclasses
     int* getStats();
 };
 
 class Weapon {
-  private: 
+  protected: 
     int atkDamage, accuracy, armorRating, health;
     Crewmate **assignedCrew;
-  public:
     bool operational;
+  public:
+    void* ship; //see above where I do the same thing
     const int maxHealth, crewmateSlots;
     const string name, desc;
+    enum specialTypes {none, eachAttack, eachTurn} specialType; //add more options to this as need be
+    Weapon *target;
 
     Weapon (int, int, int, int, int, string, string);
     Weapon();
@@ -36,24 +42,28 @@ class Weapon {
     bool isValid();
     void damage(int);
     bool rollHit();
-    int attack();
+    virtual bool attack();
     bool assignCrew(int, Crewmate*);
+    bool setTarget(Weapon*);
     int* getStats();
-    void printInfo();
-    void specialEffects(void (*)());
+    Crewmate** getAssigned();
+    virtual void printInfo();
+    virtual void specialEffects() {}; //keep this empty, it's meant to be overloaded by subclasses
     bool isOperational(bool);
 };
 
 class Ship {
-  private:
+  protected:
     int armorRating, cargoHeld, health;
     Crewmate **crew;
     Weapon **weapons;
   public:
     const string name, desc;
     const int crewmateSlots, weaponSlots, cargoSize, maxHealth;
+    enum specialTypes {none, eachAttack, eachTurn} specialType; //add more options to this as need be
 
     Ship (int, int, int, int, int, string, string);
+    Ship();
 
     void damage (int, Weapon*);
     int emptyCargo();
@@ -64,5 +74,9 @@ class Ship {
     bool addWeapon(Weapon*);
     bool switchCrew(Crewmate*, Crewmate*);
     bool switchWeapon(Weapon*, Weapon*);
-    void printInfo();
+    virtual void runAttacks();
+    virtual void printInfo();
+    Crewmate** getCrew();
+    Weapon** getWeapons();
+    virtual void specialEffects() {}; //keep this empty, it's meant to be overloaded by subclasses
 };

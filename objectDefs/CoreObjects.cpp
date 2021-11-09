@@ -11,6 +11,7 @@ Crewmate::Crewmate(int hp, int ar, int aB, int dB, string n, string d) : //main 
   maxHealth(hp), accBonus(aB), dmgBonus(dB), name(n), desc(d) {
     health = hp; armorRating = ar;
     alive = true; occupied = false;
+    specialType = none; ship = nullptr; assignedTo = nullptr;
 }
 Crewmate::Crewmate() : maxHealth(0), accBonus(0), dmgBonus(0), alive(true), name("Default") {} //Default constructors for placeholders in arrays
 
@@ -18,8 +19,12 @@ bool Crewmate::isValid() { //A simple check to see if the default constructor wa
   return this != nullptr && maxHealth != 0 && alive;
 }
 void Crewmate::damage(int atkdmg) { //for use when crewmate TAKES damage. Probably only going to be called by Weapon::damage and by extension Ship::damage, since crew can't be targets.
-  health -= (atkdmg - armorRating);
-  if (health <= 0) alive = false;
+  health -= ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0);
+  cout << name << " has taken " << ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0) << " damage.\n";
+  if (health <= 0) {
+    alive = false;
+    cout << name << " has died.\n";
+  } 
 }
 int* Crewmate::getStats() {
   int *temp = new int[5]; //HP, maxHP, AR, dmgBonus, accBonus
@@ -28,12 +33,10 @@ int* Crewmate::getStats() {
   return temp;
 }
 void Crewmate::printInfo() { //mostly for testing purposes.
-  cout << "Crewmate Name: " << name << "\n";
+  cout << "Crewmate Name: " << name << ", onboard ship: " << (ship == nullptr ? "None" : ((Ship*)ship)->name) 
+  << ", assigned to weapon: " << (assignedTo == nullptr ? "None" : ((Weapon*)assignedTo)->name) << "\n";
   cout << "Description: " << desc << "\n";
   printf("HP: %d/%d, AR: %d, Accuracy Bonus: %d, Damage Bonus: %d, Occupied: %s\n\n", health, maxHealth, armorRating, accBonus, dmgBonus, occupied ? "true":"false");
-}
-void Crewmate::specialEffects(void (*special)()) {
-  // I have no idea how to implement this. Maybe it'll become more clear when we actually have ideas for how it'll work.
 }
 
 Weapon::Weapon (int hp, int dmg, int acc, int ar, int cS, string n, string d) : //main constructor
@@ -43,6 +46,7 @@ Weapon::Weapon (int hp, int dmg, int acc, int ar, int cS, string n, string d) : 
         operational = true;
         assignedCrew = new Crewmate*[crewmateSlots];
         for (int i=0; i<crewmateSlots; i++) assignedCrew[i] = nullptr;
+        specialType = none; target = nullptr; ship = nullptr;
       }
 Weapon::Weapon() : maxHealth(0), crewmateSlots(0) {} //Default constructors for placeholders in arrays
 
@@ -50,9 +54,12 @@ bool Weapon::isValid() { //A simple check to see if the default constructor was 
   return this != nullptr && maxHealth != 0;
 }
 void Weapon::damage(int atkdmg) { //For use when a weapon TAKES damage. Should really only be called by Ship::damage(). Inflicts damage on all assigned crewmates.
-  health -= (atkdmg - armorRating);
-  if (health <= 0) operational = false;
-
+  health -= ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0);
+  cout << name << " has taken " << ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0) << " damage.\n";
+  if (health <= 0) {
+    operational = false;
+    cout << name << " has been broken is is no longer operable.\n";
+  }
   for (int i=0; i<crewmateSlots; i++)
     if (assignedCrew[i]->isValid())
       assignedCrew[i]->damage(atkdmg - armorRating); //So the final damage to crewmates is atkdmg - shipAR - weaponAR - crewAR. Should it be this way?
@@ -68,21 +75,42 @@ bool Weapon::rollHit() { //Adds up baseAccuracy and all crew modifiers and rolls
   }
   return false;
 }
-int Weapon::attack() { //Adds up baseDamage and all crew modifiers and returns the total attack damage. Actually inflicting this damage should be handled along with targeting in the main combat loop.
+bool Weapon::attack() { //Adds up baseDamage and all crew modifiers and returns the total attack damage. Actually inflicting this damage should be handled along with targeting in the main combat loop.
   if (isValid() && operational) {
     int mod = 0;
-    for (int i=0; i<crewmateSlots; i++)
-      if (assignedCrew[i]->isValid()) 
+    for (int i=0; i<crewmateSlots; i++)//calculate the modifier
+      if (assignedCrew[i]->isValid()) {
         mod += assignedCrew[i]->dmgBonus;
-    return atkDamage + mod;
+        if (assignedCrew[i]->specialType == Crewmate::specialTypes::eachAttack) assignedCrew[i]->specialEffects(); // run crew special onAttack effects
+      }
+    if (specialType == eachAttack) specialEffects(); // run weapon special onAttack effects
+    if (target->isValid()) {
+      if (rollHit()) {
+        cout << name << " dealt " << atkDamage+mod << " damage to " << target->name <<". \n";
+        ((Ship*)(target->ship))->damage(atkDamage+mod, target);
+        return true;
+      }
+      else cout << name << " missed.\n";
+    }
   }
-  return 0;
+  return false;
 }
 bool Weapon::assignCrew(int slot, Crewmate* c) { //Assigns a crewmate to a weapon in the slot provided.
   if (slot<crewmateSlots && c->isValid() && !c->occupied) {
-    if (assignedCrew[slot]->isValid()) assignedCrew[slot] -> occupied = false;
+    if (assignedCrew[slot]->isValid()) {
+      assignedCrew[slot] -> occupied = false;
+      assignedCrew[slot] -> assignedTo = nullptr;
+    }
     assignedCrew[slot] = c;
     assignedCrew[slot] -> occupied = true;
+    assignedCrew[slot] -> assignedTo = (void*)this;
+    return true;
+  }
+  return false;
+}
+bool Weapon::setTarget(Weapon *t) {
+  if (t->isValid()) {
+    target = t;
     return true;
   }
   return false;
@@ -91,23 +119,29 @@ bool Weapon::isOperational(bool v = false) { //send in true to toggle operabilit
   if (v) operational = !operational;
   return operational;
 }
+Crewmate** Weapon::getAssigned() {return assignedCrew;}
 int* Weapon::getStats() {
-  int equippedC = 0;
-  for (int i=0; i<crewmateSlots; i++)
-    if (assignedCrew[i]->isValid())
+  int equippedC = 0, dmgTotal = atkDamage, accTotal = accuracy;
+  for (int i=0; i<crewmateSlots; i++) {
+    if (assignedCrew[i]->isValid()) {
       equippedC++;
-  int *temp = new int[7]; //HP, maxHP, AR, CrewmateSlots, CrewmatesEquipped, BaseDamage, BaseAccuracy
+      dmgTotal += assignedCrew[i]->dmgBonus;
+      accTotal += assignedCrew[i]->accBonus;
+    }
+  }
+  int *temp = new int[9]; //HP, maxHP, AR, CrewmateSlots, CrewmatesEquipped, BaseDamage, BaseAccuracy, totalDamage, totalAccuracy
   temp[0] = health; temp[1] = maxHealth; temp[2] = armorRating; 
   temp[3] = crewmateSlots; temp[4] = equippedC;  
-  temp[5] = atkDamage; temp[6] = accuracy;
+  temp[5] = atkDamage; temp[6] = accuracy; temp[7] = dmgTotal; temp[8] = accTotal;
   return temp;
 }
 void Weapon::printInfo() { //mostly for testing purposes.
   int* stats = getStats();
-  cout << "Weapon Name: " << name << "\n";
+  cout << "Weapon Name: " << name << ", on ship: " << (ship == nullptr ? "None" : ((Ship*)ship)->name) << "\n";
   cout << "Description: " << desc << "\n";
   printf("HP: %d/%d, AR: %d, Base Accuracy: %d, Base Damage: %d\n", health, maxHealth, armorRating, accuracy, atkDamage);
-  printf("Crewmate Assignment Slots Filled: %d/%d, Operational: %s\n\n", stats[4], stats[3], isOperational() ? "true":"false");
+  printf("Crewmate Assignment Slots Filled: %d/%d, Operational: %s\n", stats[4], stats[3], isOperational() ? "true":"false");
+  printf("Effective Damage: %d, Effective Accuracy: %d\n\n", stats[7], stats[8]);
 }
 
 Ship::Ship (int hp, int baseArmor, int weaponS, int crewmateS, int cargoS, string n, string d) : //main constructor
@@ -120,11 +154,18 @@ Ship::Ship (int hp, int baseArmor, int weaponS, int crewmateS, int cargoS, strin
     weapons = new Weapon*[weaponSlots];
     for (int i=0; i<crewmateSlots; i++) crew[i] = nullptr;
     for (int i=0; i<weaponSlots; i++) weapons[i] = nullptr;
+    specialType = none;
   }
+Ship::Ship () : maxHealth(0), weaponSlots(0), crewmateSlots(0), cargoSize(0), name(""), desc("") {} //default constructor for placeholders in arrays
 
 void Ship::damage (int atkdmg, Weapon *target) { //for when a ship TAKES damage. ONLY CALL THIS ONE from the combat handler, passing in a pointer to the target weapon. Weapon::damage should be called from here only.
-  health -= atkdmg - armorRating;
-  if (health <= 0) {/*Send Game Over state somehow */}
+  health -= ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0);
+  cout << name << " has been hit and has taken " << ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0) << " damage. ";
+  cout << "Target hit: " << target->name << "\n";
+  if (health <= 0) {
+    /*Send Game Over state somehow */
+    cout << name << " has capsized!";
+  }
   if (target->isValid())
     target->damage(atkdmg - armorRating);
 }
@@ -160,6 +201,7 @@ bool Ship::addCrew(Crewmate* c) { //Finds an empty crew slot and adds crew to it
   for (int i=0; i<crewmateSlots; i++) {
     if (!crew[i]->isValid()) {
       crew[i] = c;
+      crew[i]->ship = (void*)this;
       return true;
     }
   }
@@ -169,6 +211,7 @@ bool Ship::addWeapon(Weapon* w) {//Finds an empty weapon slot and adds weaopn to
   for (int i=0; i<weaponSlots; i++) {
     if (!weapons[i]->isValid()) {
       weapons[i] = w;
+      weapons[i]->ship = (void*)this;
       return true;
     }
   }
@@ -185,6 +228,14 @@ bool Ship::switchCrew(Crewmate *out, Crewmate *in) { //todo: implement these if 
 bool Ship::switchWeapon(Weapon *out, Weapon *in) { 
   return true;
 }
+void Ship::runAttacks() {
+  for (int i=0; i<weaponSlots; i++)
+    if (weapons[i]->isValid()) weapons[i]->attack();
+  for (int i=0; i<crewmateSlots; i++)
+    if (crew[i]->isValid() && crew[i]->specialType == Crewmate::specialTypes::eachTurn) crew[i]->specialEffects();
+}
+Crewmate** Ship::getCrew() {return crew;}
+Weapon** Ship::getWeapons() {return weapons;}
 void Ship::printInfo() { //mostly for testing purposes.
   int* stats = getStats();
   cout << "Ship Name: " << name << "\n";
