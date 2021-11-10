@@ -12,8 +12,9 @@ using namespace std;
 int main (void)
 {
   setupGameWindow();
-  //145 characters wide
-  //47 characters high
+  //220 characters wide
+  //60 lines tall
+
 
   Ship BastardsGreed (1000, 20, 4, 10, 1200, "The Bastard's Greed", "Boat");
 
