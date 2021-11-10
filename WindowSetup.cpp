@@ -10,7 +10,7 @@
 using namespace std;
 
 void setupGameWindow() {
-  int width = 1200, height = 800;
+  int width = 1800, height = 1000; //made the window bigger because we needed the space lol. It won't run on lab machines anymore, but honestly who cares we all have 2k screens
   HWND console = GetConsoleWindow();
   RECT r, d;
   GetWindowRect(console, &r); //stores the console's current dimensions

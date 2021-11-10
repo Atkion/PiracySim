@@ -12,6 +12,9 @@ using namespace std;
 int main (void)
 {
   setupGameWindow();
+  //145 characters wide
+  //47 characters high
+
   Ship BastardsGreed (1000, 20, 4, 10, 1200, "The Bastard's Greed", "Boat");
 
   Crewmate Rhys (60, 25, 0, 60, "Rhys", "Listless Paladin");
