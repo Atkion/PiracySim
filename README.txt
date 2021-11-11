@@ -1,44 +1,107 @@
 - You are a new pirate captain, full of spirit but short on rum and crew. You have a dinghy and a lifelong friend by your side.
-
-- Roguelike gameplay loop (Roguelite? Savefiles?)
+- Roguelike gameplay loop (Roguelite? Savefiles? Not necessarily going to implement this, but considering it)
 
 - Two main "areas", open ocean (random encounters) and ports
     - At port, you can repair your ship, buy ship upgrades (and new ships), recruit crewmates, sell loot
     - At sea, you are presented with a neverending progression of encounters that slowly increase in difficulty over time
+- When at sea, a randomly generated 'world map' is displayed, and you can move around finding encounters and visiting ports on islands.
+    - Each port will have its own assortment of recruitable Crewmates, purchasable Weapons, etc.
+        - Maybe the farther you are from the starting position, the better things the port has? Not sure yet.
     
-- Each Ship has:
-    - Size (determines crewmate slots and weapon slots (some weapons take multiple slots))
-    - Armor Rating (can be upgraded at port)
-    - Weapons (accuracy, damage)
-    - Crewmates (up to 3 can be assigned to a weapon, increasing weapon abilities with each one)
-    - Cargo Size (loot capacity)
-    - Health
-    
-- Each Weapon has: 
-    - Base Accuracy
-    - Base Damage
-    - Armor Rating
-    - Health
-    - Special Properties (Attacks per Action, etc)
-    - Price
-    
-- Each Crewmate has:
-    - Health
-    - Armor Rating
-    - Bonuses (Applied to whatever weapon they operate)
-    - Name(and flavortext?)
-- In an encounter, each you and your enemy will take turns firing upon each other. 
+- So far, there are three main object types: Ships, Weapons, and Crewmates.
+    - Each Ship has these attributes:
+        - int health: The ship's current health.
+        - int armorRating: The 'defense' or damage resistance of the ship.
+        - int cargoHeld: The current amount of loot held on the ship. This is very simplistic, and there is no item system or anything like that; 1 loot can simply be sold for 1 gold at port.
+        - Crewmate** crew: This is essentially an array of Crewmate pointers, pointing to each Crewmate aboard the ship.
+        - Weapon** weapons: This is essentially an array of Weapon pointers, pointing to each Weapon fixed to the ship.
+        - const string name: The name of the ship. Determined by the player upon purchasing a new ship or starting a new game.
+        - const string desc: The description of the ship. Mostly just flavor text probably.
+        - const int crewmateSlots: The number of Crewmates that can fit aboard.
+        - const int weaponSlots: The number of Weapons that can be fixed to the ship at once.
+        - const int cargoSize: The maximum amount of loot that can be carried before a trip to port is necessary to sell it.
+        - const int maxHealth: The maximum health of the ship.
+        - enum specialType: The type of special effect this ship has (if any). Can currently be none, eachAttack, or eachTurn. (Considering adding eachHit?)
+    - Ships have these methods:
+        - void damage(int dmg, Weapon* target): inflicts damage to the ship, as well as the Weapon targeted and each Crewmate operating that weapon.
+        - int emptyCargo(): Sells the cargo and returns the amount of money gained. 
+        - int repair(): Repairs the ship and returns the amount of health restored.
+        - void reinforce(int n): Increases the ship's armorRating by n.
+        - int* getStats(): Returns an array of statistics, see the code for details.
+        - bool addCrew(Crewmate* c): Looks for an empty crewmate slot and adds c into it. Returns false if no slot is available.
+        - bool addWeapon(Weapon* w): Looks for an empty weapon slot and adds w into it. Returns false if no slot is available.
+        - bool switchCrew(int s, Crewmate* c): Inserts c in-place into slot s while maintaining all other context.
+            - AKA if the old crewmate occupying that slot was assigned to a weapon, the new one will also be assigned in the same way.
+        - bool switchWeapon(int s, Weapon* w): Inserts w in-place into slot s while maintaining all other context.
+            - AKA if the old Weapon occupying that slot had crewmates assigned to it, they will be assigned to the new one in the same way.
+            - If the new Weapon has less slots than the old one and all crewmates cannot be reassigned, the leftover ones will simply become unoccupied.
+        - void runAttacks(): Loops through all operational weapons and runs their attacks.
+        - void printInfo(): Prints all available information about a ship. Mostly used for debugging.
+        - Crewmate** getCrew(): Returns the crew pointer, as the crew variable is protected.
+        - Weapon** getWeapons(): Returns the weapons pointer, as the weapons variable is protected.
+        - void specialEffects(): A placeholder method meant to be overloaded by subclasses with special properties.
+
+    - Each Weapon has these attributes:
+        - int health: The Weapon's current health.
+        - int armorRating: The 'defense' or damage resistance of the Weapon.
+        - int atkDamage: The base damage inflicted by this Weapon's attack.
+        - int accuracy: The base percent chance this Weapon's attack has to hit its target.
+        - Crewmate** assignedCrew: This is essentially an array of Crewmate pointers, pointing to each crewmate operating this weapon.
+        - bool operational: Whether ot not this Weapon is currently capable of attacking.
+        - void* ship: A pointer to the ship this Weapon is fixed to. Needs to be a void pointer because this class is defined before Ship.
+        - const int maxHealth: The maximum health of the Weapon.
+        - const int crewmateSlots: The number of Crewmates able to simultaneously operate this Weapon.
+        - const string name: The name of the Weapon.
+        - const string desc: The description of the Weapon. Mostly just flavor text probably.
+        - enum specialType: The type of special effect this Weapon has (if any). Can currently be none, eachAttack, or eachTurn. (Considering adding eachHit?)
+        - Weapon* target: The current target this Weapon is aimed at. This is intended to be a Weapon on an enemy ship.
+    - Each Weapon has these methods:
+        - bool isValid(): Checks if this Weapon is a valid Weapon. (not nullptr and not constructed using the default constructor)
+        - void damage(int dmg): Inflicts damage on the Weapon it called on and all assigned Crewmates. Should only be called from Ship::damage().
+        - bool rollHit(): Adds all assigned crewmate modifiers to base accuracy and makes an 'attack roll'. 
+        - bool attack(): Attacks the current target.
+        - bool assignCrew(int s, Crewmate* c): Assigns Crewmate c to this weapon in slot s. If slot s is currently occupied, the current Crewmate is unassigned and the new one takes their place.
+        - bool unassignCrew(int s): Unassigns the crewmate in slot s, leaving an empty slot in their place.
+        - bool setTarget(Weapon* w): Aims this Weapon at w.
+        - int* getStats(): Returns an array of statistics, see the code for details.
+        - Crewmate** getAssigned(): Returns the assignedCrew pointer, as the variable is protected.
+        - void printInfo(): Prints all available information about a Weapon. Mostly used for debugging.
+        - void specialEffects(): A placeholder meant to be overloaded by subclasses with special properties.
+        - bool isOperational(bool s): Returns the operational attribute, as it is protected. s is optional, but will toggle operability if true.
+
+    - Each Crewmate has these attributes:
+        - int health: The Crewmate's current health.
+        - int armorRating: The 'defense' or damage resistance of the Crewmate. 
+        - bool alive: Whether this Crewmate is alive. (and can thus be of any use)
+        - bool occupied: Whether this Crewmate is currently assigned to a weapon
+        - void* ship: A pointer to the ship this Crewmate is on. Needs to be a void pointer because Crewmate is defined before Ship.
+        - void* assignedTo: A pointer to the weapon this Crewmate is operating. Needs to be a void pointer because Crewmate is defined before Weapon.
+        - const int accBonus: The accuracy bonus this Crewmate provides when operating a Weapon.
+        - const int dmgBonus: The damage bonus this Crewmate provides when operating a Weapon.
+        - const int maxHealth: The Crewmate's maximum health.
+        - const string name: The name of the Crewmate.
+        - const string desc: The description of the Crewmate. Mostly just flavor text probably.
+        - enum specialType: The type of special effect this Weapon has (if any). Can currently be none, eachAttack, or eachTurn. (Considering adding eachHit?)
+    - Each Crewmate has these methods:
+        - bool isValid(): Checks if this Crewmate is valid. (Not nullptr, not default constructor, is alive)
+        - void damage(int dmg): Inflicts damage on this Crewmate. Should only be called from Weapon:damage().
+        - void printInfo(): Prints all available information about a Crewmate. Mostly used for debugging.
+        - void specialEffects(): A placeholder meant to be overloaded by subclasses with special properties.
+        - int* getStats(): Returns an array of statistics, see the code for details.
+        
+- In an encounter, you and your enemy will take turns firing upon each other. 
     - Every turn, each weapon can be aimed at an enemy weapon and gets an action (some weapons may take two actions per attack, or get more than one attack per action)
         - Weapons need at least one crewmate assigned to attack. Any additional ones just add stats (accuracy, damage, whatever the crewmate provides)
         - Each attack goes through an accuracy check. After all accuracy values are tallied, RNG determines if it hits.
             - If it hits, damage is calculated using all the relevant bonuses/modifiers from the ship/crew/weapon
-            - If it doesn't hit, there is a chance it will go awry and hit a random other enemy weapon
-        - When a target is hit, damage is done to the ship that was hit, the weapon that was hit, and the crewmates manning that weapon
+        - When a target is hit, damage is done to the ship that was hit, the weapon that was hit, and the crewmates operating that weapon
             - This damage is calculated by (dmg - def), def being the AR of the target.
+                - This adds up down the chain of damage() calls. For example, the effective damage taken by a crewmate is (atkDamage - shipAR - weaponAR - crewmateAR).
         - If a crewmate dies, they are permanently dead. They can only be replaced by visiting port and hiring another crewmate.
-        - If a weapon 'dies', it enters a broken state and can no longer be used until it can be repaired back at port.
+        - If a weapon breaks, it enters a broken state and can no longer be used until it can be repaired back at port.
         - If your ship capsizes, it's game over, start again with another dinghy.
     - When you win an encounter, you raid the enemy ship and make off with the loot. Your cargo hold becomes fuller, and you can decide to head to port or enter another encounter.
+        - I'm considering adding the ability to recruit survivors from defeated enemy ships, but that idea is not fully developed yet, let alone implemented
 
 - When you head to port, you have several options:
     - Empty your hold and sell your loot
