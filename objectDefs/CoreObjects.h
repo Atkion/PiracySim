@@ -44,6 +44,7 @@ class Weapon {
     bool rollHit();
     virtual bool attack();
     bool assignCrew(int, Crewmate*);
+    bool unassignCrew(int);
     bool setTarget(Weapon*);
     int* getStats();
     Crewmate** getAssigned();

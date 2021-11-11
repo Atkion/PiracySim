@@ -98,13 +98,19 @@ bool Weapon::attack() { //Adds up baseDamage and all the modifiers, makes an att
 }
 bool Weapon::assignCrew(int slot, Crewmate* c) { //Assigns a crewmate to a weapon in the slot provided.
   if (slot<crewmateSlots && c->isValid() && !c->occupied) {
-    if (assignedCrew[slot]->isValid()) {
-      assignedCrew[slot] -> occupied = false;
-      assignedCrew[slot] -> assignedTo = nullptr;
-    }
+    unassignCrew(slot);
     assignedCrew[slot] = c;
     assignedCrew[slot] -> occupied = true;
     assignedCrew[slot] -> assignedTo = (void*)this;
+    return true;
+  }
+  return false;
+}
+bool Weapon::unassignCrew(int slot) { //Used to unassign a crewmate without replacing it. Will just set the crewmate slot to nullptr.
+  if (slot<crewmateSlots && assignedCrew[slot]->isValid()) {
+    assignedCrew[slot] -> occupied = false;
+    assignedCrew[slot] -> assignedTo = nullptr;
+    assignedCrew[slot] = nullptr;
     return true;
   }
   return false;
@@ -202,6 +208,7 @@ bool Ship::addCrew(Crewmate* c) { //Finds an empty crew slot and adds crew to it
   for (int i=0; i<crewmateSlots; i++) {
     if (!crew[i]->isValid()) {
       crew[i] = c;
+      crew[i]->assignedTo = nullptr;
       crew[i]->ship = (void*)this;
       return true;
     }
@@ -223,29 +230,48 @@ bool Ship::addWeapon(Weapon* w) {//Finds an empty weapon slot and adds weaopn to
 // if a ship has 30 crew slots it doesn't really make sense to force players to figure out slots rather than just filling in crew until it's full, then switching
 // them out by name if necessary. Thoughts? Maybe we run addCrew/addWeapon, and if it returns false (it couldn't find a slot) then enter a menu where they can switch
 // using this method?
-bool Ship::switchCrew(int slot, Crewmate *c) {
+bool Ship::switchCrew(int slot, Crewmate *c) { //This should not be run to add crew to empty slots, only to switch a crewmate out with a new one.
   if (slot<crewmateSlots && c->isValid()) {
-    if (crew[slot]->isValid()) {
-      crew[slot] -> occupied = false;
-      crew[slot] -> assignedTo = nullptr;
-      crew[slot] -> ship = nullptr;
+    if (crew[slot]->isValid()) { //Remove old crewmate from any weapons, and replace them with the new one in their slot.
+      for (int i=0; i<weaponSlots; i++) {
+        if (weapons[i]->isValid()) {
+          for (int j=0; j<weapons[i]->crewmateSlots; j++) {
+            if (weapons[i]->getAssigned()[j]->isValid()){
+              if (crew[slot] == weapons[i]->getAssigned()[j]) {
+                weapons[i]->assignCrew(j, c); //This automatically handles assignedTo and occupied for c and crew[slot]
+              }
+            }
+          }
+        }
+      }
+      crew[slot] -> ship = nullptr; //remove old crew from ship
     }
     crew[slot] = c;
-    crew[slot] -> occupied = false;
-    crew[slot] -> assignedTo = nullptr;
-    crew[slot] -> ship = (void*)this;
+    // c->occupied will already be set by assignCrew, or else it will already be false (and doesn't need to be set here).
+    // c->assignedTo should already be nullptr, unless it was set above (if the old crewmate in this slot had an assignment), so setting it here is dumb
+    crew[slot] -> ship = (void*)this; 
     return true;
   }
   return false;
 }
-bool Ship::switchWeapon(int slot, Weapon *w) { 
+bool Ship::switchWeapon(int slot, Weapon *w) { //This should not be run to add weapons to empty slots, only to switch out a weapon with a new one.
   if (slot<weaponSlots && w->isValid()) {
-    if (weapons[slot]->isValid()) {
-      weapons[slot] -> target = nullptr;
+    if (weapons[slot]->isValid()) { //If there's already a weapon in this slot, set its target and ship to null
+      weapons[slot] -> target = nullptr; 
       weapons[slot] -> ship = nullptr;
+      for (int i=0; i<weapons[slot]->crewmateSlots; i++) { //If crewmates assigned to old weapon, assign them to new weapon. If not enough slots on new weapon, unassign leftover crew.
+        if (weapons[slot]->getAssigned()[i]->isValid()) {
+          Crewmate* c = weapons[slot]->getAssigned()[i];
+          weapons[slot]->unassignCrew(i);
+          if (!(w->assignCrew(i, c))) { 
+            weapons[slot]->getAssigned()[i]-> occupied = false;
+            weapons[slot]->getAssigned()[i]-> assignedTo = nullptr;
+          }
+        }
+      }
     }
     weapons[slot] = w;
-    weapons[slot] -> target = nullptr;
+    weapons[slot] -> target = nullptr; //can't be aimed, because weapons can only be switched at port.
     weapons[slot] -> ship = (void*)this;
     return true;
   }

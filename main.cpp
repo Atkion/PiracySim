@@ -32,7 +32,16 @@ int main (void)
 
   for (int i=0; i<5; i++) BastardsGreed.addCrew(crew[i]);
   for (int i=0; i<3; i++) BastardsGreed.addWeapon(weapons[i]);
-  Ballista.assignCrew(0, &Rhys); Ballista.assignCrew(1, &Creak); Cannon.assignCrew(0, &ChaCha); Ballista2.assignCrew(0, &Aiirbjorne); 
+  Ballista.assignCrew(0, &Rhys); Ballista.assignCrew(1, &Creak); Cannon.assignCrew(0, &Azure); Ballista2.assignCrew(0, &Aiirbjorne); 
+  Cannon.assignCrew(0, &ChaCha); //Replace Azure with ChaCha, so Azure is no longer busy but is still on the ship
+
+  Weapon CannonReplacement (50, 10, 15, 15, 1, "Cannon 2", "Basic Side Cannon 2");
+  BastardsGreed.switchWeapon(2, &CannonReplacement); //Replace Cannon with Cannon 2, Cannon is no longer on the ship.
+  //Note that this last line unassigns ChaCha from Cannon, and assigns him to Cannon 2. This should only be called from port.
+  Crewmate Braids (20, 0, 95, 0, "Braids", "Feverish Artificer");
+  BastardsGreed.switchCrew(3, &Braids); //Replace ChaCha with Braids, ChaCha is no longer on the ship.
+  //Note that this last line unassigns ChaCha from Cannon2 and BastardsGreed, and assigns Braids in his place. This should only be called from port,
+  //UNLESS we implement the ability to recruit survivors from defeated enemy ships? Is this worth doing? Maybe only add them to empty crew slots, because we'd have to throw an existing crewmate overboard to use this at sea lol
 
   Ship EnemyShip (1500, 20, 4, 10, 1200, "Enemy Ship", "Enemy Ship"); //Crewmate usually dies if RNG favors, testing weapons breaking and crewmates dying. Also tests accuracy RNG, seems to work okay so far (need to be more liberal on acc bonuses tho)
   Weapon EnemyCannon (1000, 140, 15, 15, 1, "Enemy Cannon", "Enemy Cannon");
@@ -42,7 +51,6 @@ int main (void)
   Ballista.setTarget(&EnemyCannon); Ballista2.setTarget(&EnemyCannon); Cannon.setTarget(&EnemyCannon); //Setting sights on enemy cannon
   EnemyCannon.setTarget(&Ballista);
 
-  //for (int i=0; i<10; i++)
   BastardsGreed.runAttacks(); 
   EnemyShip.runAttacks();
        //Attack roll, adds up Weapon Accuracy + All Assigned Crew Accbonuses.

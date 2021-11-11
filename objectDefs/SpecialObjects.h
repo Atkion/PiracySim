@@ -9,7 +9,7 @@
 *
 * Weapon::printInfo()
 * Weapon::specialEffects()
-* Weapon:: attack()
+* Weapon::attack()
 *
 * Ship::printInfo()
 * Ship::specialEffects()

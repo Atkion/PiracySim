@@ -22,10 +22,8 @@ using namespace std;
 */
 
 //No idea if this one will make it into the final game, more of an example than anything
-Musketeer::Musketeer(int hp, int ar, int aB, int dB, string n, string d) : Crewmate(hp, ar, aB, dB, n, d) {
-    specialType = eachTurn;
-}
-Musketeer::Musketeer() : Crewmate() { specialType = eachTurn; } //Default constructors for placeholders in arrays
+Musketeer::Musketeer(int hp, int ar, int aB, int dB, string n, string d) : Crewmate(hp, ar, aB, dB, n, d) { specialType = eachTurn; } //Call parent constructor then set specialType
+Musketeer::Musketeer() : Crewmate() { specialType = eachTurn; } //Default constructor
 
 void Musketeer::printInfo() { 
     Crewmate::printInfo();
@@ -37,9 +35,7 @@ void Musketeer::specialEffects() {//todo: fix this terrible fucking thing when p
     srand(time(NULL));
     int i;
     if (!occupied) {
-        do {
-            i = rand() % enemyShip->weaponSlots;
-        } while (!enemyShip->getWeapons()[i]->isValid());
+        do { i = rand() % enemyShip->weaponSlots; } while (!enemyShip->getWeapons()[i]->isValid());
 
         if (rand() % 100 < 50) {
             //Somehow report success to combat log
