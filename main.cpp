@@ -1,12 +1,8 @@
 //#define _GLIBCXX_USE_CXX11_ABI 0
 #include "WindowSetup.h"
-<<<<<<< Updated upstream
 #include "objectDefs/CoreObjects.h"
 #include "objectDefs/SpecialObjects.h"
-=======
-#include "CoreObjects.h"
 #include "Map.h"
->>>>>>> Stashed changes
 #include <iostream>
 #include <cstdio>
 #include <stdlib.h>
@@ -17,12 +13,8 @@ using namespace std;
 int main (void)
 {
   setupGameWindow();
-<<<<<<< Updated upstream
   //220 characters wide
   //60 lines tall
-
-=======
->>>>>>> Stashed changes
 
   Ship BastardsGreed (1000, 20, 4, 10, 1200, "The Bastard's Greed", "Boat");
 
@@ -61,17 +53,15 @@ int main (void)
 
   BastardsGreed.runAttacks(); 
   EnemyShip.runAttacks();
-       //Attack roll, adds up Weapon Accuracy + All Assigned Crew Accbonuses.
-       //Damages EnemyShip, and also Damages EnemyCannon (the target) as well as every crewmate operating it
+  //Attack roll, adds up Weapon Accuracy + All Assigned Crew Accbonuses.
+  //Damages EnemyShip, and also Damages EnemyCannon (the target) as well as every crewmate operating it
 
-      //Hitting another weapon on miss is not implemented, and probably won't be at this point. Doesn't seem worth the effort, if you disagree let me know lol
-      //Also Accuracy numbers are percentage chance to hit, so if total accuracy is over 100 you will always hit.
+  //Hitting another weapon on miss is not implemented, and probably won't be at this point. Doesn't seem worth the effort, if you disagree let me know lol
+  //Also Accuracy numbers are percentage chance to hit, so if total accuracy is over 100 you will always hit.
   
   EnemyShip.printInfo();
 
   BastardsGreed.printInfo();
-
-  int i; cin >> i; //This is just to keep the console open because nothing else keeps the game running yet
 
   /*-------------------------------------------- 
     |             Map initialization            |
@@ -79,4 +69,6 @@ int main (void)
   Map map(1000, 1000);
   map.addShip(&BastardsGreed, 500, 500);
   map.printMapView(480, 480, 40, 40);
+
+   int i; cin >> i; //This is just to keep the console open because nothing else keeps the game running yet
 }
