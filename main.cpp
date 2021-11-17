@@ -1,7 +1,12 @@
 //#define _GLIBCXX_USE_CXX11_ABI 0
 #include "WindowSetup.h"
+<<<<<<< Updated upstream
 #include "objectDefs/CoreObjects.h"
 #include "objectDefs/SpecialObjects.h"
+=======
+#include "CoreObjects.h"
+#include "Map.h"
+>>>>>>> Stashed changes
 #include <iostream>
 #include <cstdio>
 #include <stdlib.h>
@@ -12,9 +17,12 @@ using namespace std;
 int main (void)
 {
   setupGameWindow();
+<<<<<<< Updated upstream
   //220 characters wide
   //60 lines tall
 
+=======
+>>>>>>> Stashed changes
 
   Ship BastardsGreed (1000, 20, 4, 10, 1200, "The Bastard's Greed", "Boat");
 
@@ -64,4 +72,11 @@ int main (void)
   BastardsGreed.printInfo();
 
   int i; cin >> i; //This is just to keep the console open because nothing else keeps the game running yet
+
+  /*-------------------------------------------- 
+    |             Map initialization            |
+    --------------------------------------------*/
+  Map map(1000, 1000);
+  map.addShip(&BastardsGreed, 500, 500);
+  map.printMapView(480, 480, 40, 40);
 }
