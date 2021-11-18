@@ -3,6 +3,7 @@
 #include "objectDefs/CoreObjects.h"
 #include "objectDefs/SpecialObjects.h"
 #include "Map.h"
+#include "PDCurses/curses.h"
 #include <iostream>
 #include <cstdio>
 #include <stdlib.h>
@@ -70,5 +71,8 @@ int main (void)
   map.addShip(&BastardsGreed, 500, 500);
   map.printMapView(480, 480, 40, 40);
 
-   int i; cin >> i; //This is just to keep the console open because nothing else keeps the game running yet
+   //This is just to keep the console open because nothing else keeps the game running yet
+  initscr();
+  for (int i=0; i<10;i++) flash(); //https://github.com/wmcbrine/PDCurses/blob/master/docs/MANUAL.md for documentation on this shit
+  int i; cin >> i;
 }
