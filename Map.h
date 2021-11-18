@@ -4,31 +4,37 @@
 #include <iostream>
 #include <string>
 #include <utility>
+#include <vector>
+#include <string>
 
 using namespace std;
 
 class Island
 {
     private:
-        generateIsland();
+        pair<int, int> location;
     public:
-        Island(); // randomly generate stuff
+        Island(string); // randomly generate stuff
+        Island(int, int);
+        pair<int, int> getLocation(); // get location of the island;
+        void setLocation(int x, int y);
+        string name;
 };
 
 class Map
 {
     private:
-        Ship* ship;
         pair<int, int> shipLocation;
         int height, width;
-        // Island islands[];
+        vector<Island> islands;
 
     public:
-        // int numberOfIslands;
+        Map(int, int); // set the width and the height
+        Map(int, int, pair<int, int>); // set the width and the height w/ ship location
 
-        Map(int, int); // set the width and the height w/ the current ship on the map
-
-        void generateIslands();
-        void addShip(Ship*, int, int);
+        void generateIsland(int); // create an island a certain distance from the ship
+        void generateIsland(int, int); // create an island with a specific location
+        void addShipLocation(int, int);
+        void moveShip(int, int); // move the ship x and y amount DOES NOT SET SHIP LOCATION ONLY MOVES
         string printMapView(int, int, int, int);
 };

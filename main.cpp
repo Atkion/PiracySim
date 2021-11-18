@@ -67,7 +67,10 @@ int main (void)
     |             Map initialization            |
     --------------------------------------------*/
   Map map(1000, 1000);
-  map.addShip(&BastardsGreed, 500, 500);
+  map.addShipLocation(500, 500);
+  map.generateIsland(502, 502);
+  map.printMapView(480, 480, 40, 40);
+  map.moveShip(1,1);
   map.printMapView(480, 480, 40, 40);
 
    int i; cin >> i; //This is just to keep the console open because nothing else keeps the game running yet
