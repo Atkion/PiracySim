@@ -5,11 +5,14 @@
 #include <time.h>       /* time */
 #include <iostream>
 #include <string>
+#include <vector>
 
 using namespace std;
 
-Island::Island()
+// TODO : When an island is created have the random island layout be created
+Island::Island(string name_)
 {
+    name = name_;
     /* initialize random seed: */
     srand(time(NULL));
     
@@ -22,6 +25,22 @@ Island::Island()
             
 }
 
+Island::Island(int x, int y)
+{
+    location = pair<int, int>(x, y);
+}
+
+pair<int, int> Island::getLocation()
+{
+    return location;    
+}
+
+void Island::setLocation(int x, int y)
+{
+    location.first = x;
+    location.second = y;
+}
+
 Map::Map(int width_, int height_)
 {
     // set the insace variables
@@ -29,8 +48,17 @@ Map::Map(int width_, int height_)
     height = height_;
 }
 
-void Map::generateIslands()
+Map::Map(int width_, int height_, pair<int, int> shipLocation_)
 {
+    width = width_;
+    height = height_;
+    shipLocation.first = shipLocation_.first;
+    shipLocation.second = shipLocation_.second;
+}
+
+void Map::generateIsland(int distanceFromShip)
+{
+    islands.push_back(Island("The NutClam Aisles"));
     /* initialize random seed: */
     srand(time(NULL));
 
@@ -42,11 +70,23 @@ void Map::generateIslands()
     //     islands[i] = Island();
 }
 
-void Map::addShip(Ship* ship_, int x, int y)
+void Map::generateIsland(int x, int y)
 {
-    ship = ship_;
+    Island temp("The NutClam Aisles");
+    temp.setLocation(x, y);
+    islands.push_back(temp);
+}
+
+void Map::addShipLocation(int x, int y)
+{
     shipLocation.first = x;
     shipLocation.second = y;
+}
+
+void Map::moveShip(int xAmount, int yAmount)
+{
+    shipLocation.first += xAmount;
+    shipLocation.second += -yAmount; 
 }
 
 string Map::printMapView(int x, int y, int width, int height)
@@ -55,6 +95,13 @@ string Map::printMapView(int x, int y, int width, int height)
     {
         for (int j = 0; j < width; j++)
         {
+            for (auto island = islands.begin(); island != islands.end(); ++island)
+            {
+                if ((x + j) == island->getLocation().first && (y + i) == island->getLocation().second)
+                {
+                    cout << "O ";
+                }
+            }
             if ((x + j) == shipLocation.first && (y + i) == shipLocation.second)
             {
                 cout << "S ";
