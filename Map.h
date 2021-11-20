@@ -9,10 +9,16 @@
 
 using namespace std;
 
+/* TODO -> Add size int
+        -> Add formation of islands
+        -> possibly add print island??
+*/
 class Island
 {
     private:
+        char islandMap[5][5];
         pair<int, int> location;
+        void formIsland();
     public:
         Island(string); // randomly generate stuff
         Island(int, int);

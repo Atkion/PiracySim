@@ -76,6 +76,9 @@ int main (void)
 
    //This is just to keep the console open because nothing else keeps the game running yet
   initscr();
-  for (int i=0; i<10;i++) flash(); //https://github.com/wmcbrine/PDCurses/blob/master/docs/MANUAL.md for documentation on this shit
+  // for (int i=0; i<10;i++) beep(); //https://github.com/wmcbrine/PDCurses/blob/master/docs/MANUAL.md for documentation on this shit
+  chtype test(1);
+  for (int i = 0; i < 10; i++) addstr("This is a test!");
+  refresh();
   int i; cin >> i;
 }

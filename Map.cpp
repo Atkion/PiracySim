@@ -21,13 +21,18 @@ Island::Island(string name_)
 
     // for (int i = 0; i < 5; i++)
     //     for (int j = 0; j < 5; j++)
-        
-            
 }
 
 Island::Island(int x, int y)
 {
     location = pair<int, int>(x, y);
+    // islandMap =
+    // {{' ', 'L', 'L', ' ',' '},
+    //  {' ', 'L', 'L', 'L',' '},
+    //  {'L', 'L', 'L', 'L','L'},
+    //  {' ', 'L', 'L', 'L',' '},
+    //  {' ', ' ', 'P', ' ',' '}
+    // };
 }
 
 pair<int, int> Island::getLocation()
