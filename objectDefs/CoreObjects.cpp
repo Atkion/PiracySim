@@ -77,7 +77,7 @@ bool Weapon::rollHit() { //Adds up baseAccuracy and all crew modifiers and rolls
 }
 //This next one was going to be implemented into the combat handler instead, but I realized I could just do it from here. This should only be called from Ship::runAttacks().
 bool Weapon::attack() { //Adds up baseDamage and all the modifiers, makes an attack roll with rollHit(), and deals damage to the enemy ship and target weapon. Also does onAttack special effects.
-  if (isValid() && operational) {
+  if (isValid() && isOperational(false)) {
     int mod = 0;
     for (int i=0; i<crewmateSlots; i++)//calculate the modifier
       if (assignedCrew[i]->isValid()) {
@@ -122,11 +122,19 @@ bool Weapon::setTarget(Weapon *t) {
   }
   return false;
 }
-bool Weapon::isOperational(bool v = false) { //send in true to toggle operability, used to query operability since it's private
+void Weapon::unsetTarget() {
+  target = nullptr;
+}
+bool Weapon::isOperational(bool v = false) { //send in true to toggle operability, used to query operability and check that someone's assigned to it
   if (v) operational = !operational;
-  return operational;
+  bool hasAssigned = false;
+  for (int i=0; i<crewmateSlots; i++) {
+    if (assignedCrew[i]->isValid()) hasAssigned = true;
+  }
+  return operational && hasAssigned;
 }
 Crewmate** Weapon::getAssigned() {return assignedCrew;}
+
 int* Weapon::getStats() {
   int equippedC = 0, dmgTotal = atkDamage, accTotal = accuracy;
   for (int i=0; i<crewmateSlots; i++) {
@@ -300,4 +308,35 @@ void Ship::printInfo() { //mostly for testing purposes.
     if (crew[i]->isValid())
       crew[i]->printInfo();
   printf("\n\n");
+}
+
+Ship* Ship::generateEncounter() {//TODO: Make this, probably implement a version for crewmates/weapons as well
+  return nullptr;
+}
+
+void Ship::autoConfigure(Ship* enemyShip) {
+  for (int i=0; i<weaponSlots; i++) { //Try to make sure every weapon has at least one crewmate
+    for (int j=0; j<crewmateSlots; j++) {
+      if (weapons[i]->getStats()[4] == 0 && !crew[j]->occupied) {
+        weapons[i]->assignCrew(0, crew[j]);
+        break;
+      }
+    }
+  }
+  for (int i=0; i<weaponSlots; i++) //Assign other crewmates on a FCFS basis
+    for (int j=0; j<crewmateSlots; j++)
+      if (weapons[i]->isValid() && crew[j]->isValid())
+        if (!crew[j]->occupied)
+          for (int k=0; k<weapons[i]->crewmateSlots; k++)
+            if (weapons[i]->getAssigned()[k] == nullptr) 
+              weapons[i]->assignCrew(k, crew[j]);
+  srand(time(NULL));
+  for (int i=0; i<weaponSlots; i++) //Point our weapons at random enemy weapons
+    if (weapons[i]->isValid())
+      weapons[i]->setTarget(enemyShip->getWeapons()[rand()%(enemyShip->weaponSlots)]);
+}
+
+void Ship::unsetWeapons() {
+  for (int i=0; i<weaponSlots; i++)
+    if (weapons[i]->isValid()) weapons[i]->unsetTarget();
 }

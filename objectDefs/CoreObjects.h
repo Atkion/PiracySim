@@ -45,6 +45,7 @@ class Weapon {
     virtual bool attack();
     bool assignCrew(int, Crewmate*);
     bool unassignCrew(int);
+    void unsetTarget();
     bool setTarget(Weapon*);
     int* getStats();
     Crewmate** getAssigned();
@@ -59,6 +60,9 @@ class Ship {
     Crewmate **crew;
     Weapon **weapons;
   public:
+    void unsetWeapons();
+    void autoConfigure(Ship*); //This automatically assigns crewmates to weapons without much strategy
+    Ship* generateEncounter(); //This generates an appropriate-level enemy based on the Ship's CR
     const string name, desc;
     const int crewmateSlots, weaponSlots, cargoSize, maxHealth;
     enum specialTypes {none, eachAttack, eachTurn} specialType; //add more options to this as need be

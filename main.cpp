@@ -2,6 +2,7 @@
 #include "WindowSetup.h"
 #include "objectDefs/CoreObjects.h"
 #include "objectDefs/SpecialObjects.h"
+#include "objectDefs/CombatHandler.h"
 #include "Map.h"
 #include "PDCurses/curses.h"
 #include <iostream>
