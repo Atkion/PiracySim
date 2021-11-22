@@ -52,7 +52,11 @@ Map::Map(int width_, int height_)
     // set the insace variables
     width = width_;
     height = height_;
-    initscr();
+    start_color();
+
+    init_pair(1, COLOR_BLUE, COLOR_BLUE); // water
+    init_pair(2, COLOR_BLACK, COLOR_BLACK); // ship
+    init_pair(3, COLOR_GREEN, COLOR_GREEN); // island
 }
 
 Map::Map(int width_, int height_, pair<int, int> shipLocation_)
@@ -98,15 +102,18 @@ void Map::moveShip(int xAmount, int yAmount)
 
 string Map::printMapView(int x, int y, int width, int height)
 {
-    int cols, rows;
-    getmaxyx(stdscr, rows, cols);
+    // stuff for the console
     start_color();
 
     init_pair(1, COLOR_BLUE, COLOR_BLUE); // water
     init_pair(2, COLOR_BLACK, COLOR_BLACK); // ship
     init_pair(3, COLOR_GREEN, COLOR_GREEN); // island
 
-    attrset(COLOR_PAIR(1)); // setting the water attribute
+    clear();
+    int cols, rows;
+    getmaxyx(stdscr, rows, cols);
+
+    attron(COLOR_PAIR(1)); // setting the water attribute
 
     // for making the water
     for (int i = 0; i < rows; i++)
@@ -116,6 +123,7 @@ string Map::printMapView(int x, int y, int width, int height)
             addch(' '); // add the blank space
         }
     }
+    attroff(COLOR_PAIR(1));
     for (int i = 0; i < cols; i++)
     {
         for (int j = 0; j < rows; j++)
@@ -124,14 +132,16 @@ string Map::printMapView(int x, int y, int width, int height)
             {
                 if ((x + j) == island->getLocation().first && (y + i) == island->getLocation().second)
                 {
-                    attrset(COLOR_PAIR(3));
+                    attron(COLOR_PAIR(3));
                     mvaddch(j, i, ' ');
+                    attroff(COLOR_PAIR(3));
                 }
             }
             if ((x + j) == shipLocation.first && (y + i) == shipLocation.second)
             {
-                attrset(COLOR_PAIR(2));
+                attron(COLOR_PAIR(2));
                 mvaddch(j, i, ' ');
+                attroff(COLOR_PAIR(2));
             }
         }
     }

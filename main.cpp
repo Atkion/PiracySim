@@ -70,12 +70,14 @@ int main (void)
   Map map(1000, 1000);
   map.addShipLocation(500, 500);
   map.generateIsland(502, 502);
-  map.printMapView(480, 480, 40, 40);
+  // map.printMapView(480, 480, 40, 40);
+  // map.moveShip(1,1);
+  // map.printMapView(480, 480, 40, 40);
   // map.moveShip(1,1);
   // map.printMapView(480, 480, 40, 40);
 
    //This is just to keep the console open because nothing else keeps the game running yet
-  initscr();
+  // initscr();
   // for (int i=0; i<10;i++) beep(); //https://github.com/wmcbrine/PDCurses/blob/master/docs/MANUAL.md for documentation on this shit
   // chtype test(1);
   // start_color();
@@ -84,5 +86,50 @@ int main (void)
   // for (int i = 0; i < 500; i++) addstr("This is a test!");
   // mvprintw(10, 10, "test");
   // refresh();
-  int i; cin >> i;
+  // int i; cin >> i;
+
+  initscr();
+  keypad(stdscr, TRUE);
+  int ch;
+  ch = getch();
+  do
+  {
+    ch = getch();
+    switch (ch)
+    {
+    case KEY_RIGHT:
+      map.moveShip(0,-1);
+      map.printMapView(480, 480, 0, 0);
+      // printw("RIGHT");
+      break;
+    case KEY_LEFT:
+      map.moveShip(0,1);
+      map.printMapView(480, 480, 0, 0);
+      // printw("LEFT");
+      break;
+    case KEY_UP:
+      map.moveShip(-1,0);
+      map.printMapView(480, 480, 0, 0);
+      // printw("UP");
+      break;
+    case KEY_DOWN:
+      map.moveShip(1,0);
+      map.printMapView(480, 480, 0, 0);
+      // printw("DOWN");
+      break;
+    default:
+      printw("USE ARROW KEYS!");
+      break;
+    }
+  } while (ch != KEY_END);
+  
+  ch = getch();
+
+  if (ch == KEY_LEFT)
+  {
+      printw("Left arrow is pressed\n");
+  }
+  refresh();
+
+  ch = getch();
 }
