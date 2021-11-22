@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "PDCurses/curses.h"
 
 using namespace std;
 
@@ -51,6 +52,7 @@ Map::Map(int width_, int height_)
     // set the insace variables
     width = width_;
     height = height_;
+    initscr();
 }
 
 Map::Map(int width_, int height_, pair<int, int> shipLocation_)
@@ -96,27 +98,43 @@ void Map::moveShip(int xAmount, int yAmount)
 
 string Map::printMapView(int x, int y, int width, int height)
 {
-    for (int i = 0; i < height; i++)
+    int cols, rows;
+    getmaxyx(stdscr, rows, cols);
+    start_color();
+
+    init_pair(1, COLOR_BLUE, COLOR_BLUE); // water
+    init_pair(2, COLOR_BLACK, COLOR_BLACK); // ship
+    init_pair(3, COLOR_GREEN, COLOR_GREEN); // island
+
+    attrset(COLOR_PAIR(1)); // setting the water attribute
+
+    // for making the water
+    for (int i = 0; i < rows; i++)
     {
-        for (int j = 0; j < width; j++)
+        for (int j = 0; j < cols; j++)
+        {
+            addch(' '); // add the blank space
+        }
+    }
+    for (int i = 0; i < cols; i++)
+    {
+        for (int j = 0; j < rows; j++)
         {
             for (auto island = islands.begin(); island != islands.end(); ++island)
             {
                 if ((x + j) == island->getLocation().first && (y + i) == island->getLocation().second)
                 {
-                    cout << "O ";
+                    attrset(COLOR_PAIR(3));
+                    mvaddch(j, i, ' ');
                 }
             }
             if ((x + j) == shipLocation.first && (y + i) == shipLocation.second)
             {
-                cout << "S ";
-            }
-            else
-            {
-                cout << "* ";
+                attrset(COLOR_PAIR(2));
+                mvaddch(j, i, ' ');
             }
         }
-        cout << "\n";
     }
+    refresh();
 }
 

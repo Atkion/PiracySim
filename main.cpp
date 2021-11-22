@@ -71,14 +71,18 @@ int main (void)
   map.addShipLocation(500, 500);
   map.generateIsland(502, 502);
   map.printMapView(480, 480, 40, 40);
-  map.moveShip(1,1);
-  map.printMapView(480, 480, 40, 40);
+  // map.moveShip(1,1);
+  // map.printMapView(480, 480, 40, 40);
 
    //This is just to keep the console open because nothing else keeps the game running yet
   initscr();
   // for (int i=0; i<10;i++) beep(); //https://github.com/wmcbrine/PDCurses/blob/master/docs/MANUAL.md for documentation on this shit
-  chtype test(1);
-  for (int i = 0; i < 10; i++) addstr("This is a test!");
-  refresh();
+  // chtype test(1);
+  // start_color();
+  // init_pair(1, COLOR_RED, COLOR_BLUE);
+  // attron(COLOR_PAIR(1));
+  // for (int i = 0; i < 500; i++) addstr("This is a test!");
+  // mvprintw(10, 10, "test");
+  // refresh();
   int i; cin >> i;
 }
