@@ -110,3 +110,5 @@
     - Reinforce/upgrade your ship
     - Buy larger/better ships
     - Buy and mount weapons on your ship
+    
+https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/
