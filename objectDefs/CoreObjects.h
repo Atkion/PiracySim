@@ -10,18 +10,22 @@ class Crewmate {
     bool occupied;
     void* ship; //YES I KNOW HOW SCUFFED THESE ARE, I had to do this because the ship and weapon classes aren't defined yet so I can't have pointers to them
     void* assignedTo;
-    const int accBonus, dmgBonus, maxHealth;
-    const string name, desc;
+    int accBonus, dmgBonus, maxHealth;
+    string name, desc;
     enum specialTypes {none, eachAttack, eachTurn} specialType; //add more options to this as need be
 
     Crewmate(int, int, int, int, string, string);
     Crewmate();
+    Crewmate(const Crewmate&);
+    void operator=(const Crewmate&);
 
+    static Crewmate generateEnemy(int);
+    virtual int getCR()const;
     bool isValid();
     void damage(int);
     virtual void printInfo();
     virtual void specialEffects() {}; //keep this empty, it's meant to be overloaded by subclasses
-    int* getStats();
+    int* getStats()const;
 };
 
 class Weapon {
@@ -31,14 +35,19 @@ class Weapon {
     bool operational;
   public:
     void* ship; //see above where I do the same thing
-    const int maxHealth, crewmateSlots;
-    const string name, desc;
+    int maxHealth, crewmateSlots;
+    string name, desc;
     enum specialTypes {none, eachAttack, eachTurn} specialType; //add more options to this as need be
     Weapon *target;
 
     Weapon (int, int, int, int, int, string, string);
     Weapon();
+    Weapon(const Weapon&);
 
+    void operator=(const Weapon&);
+
+    static Weapon generateEnemy(int);
+    virtual int getCR()const;
     bool isValid();
     void damage(int);
     bool rollHit();
@@ -47,7 +56,7 @@ class Weapon {
     bool unassignCrew(int);
     void unsetTarget();
     bool setTarget(Weapon*);
-    int* getStats();
+    int* getStats()const;
     Crewmate** getAssigned();
     virtual void printInfo();
     virtual void specialEffects() {}; //keep this empty, it's meant to be overloaded by subclasses
@@ -62,7 +71,8 @@ class Ship {
   public:
     void unsetWeapons();
     void autoConfigure(Ship*); //This automatically assigns crewmates to weapons without much strategy
-    Ship* generateEncounter(); //This generates an appropriate-level enemy based on the Ship's CR
+    Ship generateEncounter(int*, int*); //This generates an appropriate-level enemy based on the Ship's CR
+    virtual int getCR(); //Gets the challenge rating of a ship and everything on it.
     const string name, desc;
     const int crewmateSlots, weaponSlots, cargoSize, maxHealth;
     enum specialTypes {none, eachAttack, eachTurn} specialType; //add more options to this as need be
@@ -70,6 +80,7 @@ class Ship {
     Ship (int, int, int, int, int, string, string);
     Ship();
 
+    bool isValid();
     void damage (int, Weapon*);
     int emptyCargo();
     int repair();

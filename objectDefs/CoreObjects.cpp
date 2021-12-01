@@ -13,11 +13,25 @@ Crewmate::Crewmate(int hp, int ar, int aB, int dB, string n, string d) : //main 
     alive = true; occupied = false;
     specialType = none; ship = nullptr; assignedTo = nullptr;
 }
+
 Crewmate::Crewmate() : maxHealth(0), accBonus(0), dmgBonus(0), alive(true), name("Default") {} //Default constructors for placeholders in arrays
+Crewmate::Crewmate(const Crewmate& c) {
+  int* s = c.getStats();
+  maxHealth = s[1]; accBonus = s[4]; dmgBonus = s[3]; name = c.name; desc = c.desc;
+  health = s[0]; alive = c.alive; occupied = c.occupied; specialType = c.specialType;
+}
+
+void Crewmate::operator=(const Crewmate& c) {
+  int* s = c.getStats();
+  maxHealth = s[1]; accBonus = s[4]; dmgBonus = s[3]; name = c.name; desc = c.desc;
+  health = s[0]; alive = c.alive; occupied = c.occupied; specialType = c.specialType;
+  armorRating = c.armorRating;
+}
 
 bool Crewmate::isValid() { //A simple check to see if the default constructor was used and if crewmate is alive
   return this != nullptr && maxHealth != 0 && alive;
 }
+
 void Crewmate::damage(int atkdmg) { //for use when crewmate TAKES damage. Probably only going to be called by Weapon::damage and by extension Ship::damage, since crew can't be targets.
   health -= ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0);
   cout << name << " has taken " << ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0) << " damage.\n";
@@ -26,18 +40,34 @@ void Crewmate::damage(int atkdmg) { //for use when crewmate TAKES damage. Probab
     cout << name << " has died.\n";
   } 
 }
-int* Crewmate::getStats() {
-  int *temp = new int[5]; //HP, maxHP, AR, dmgBonus, accBonus
+
+Crewmate Crewmate::generateEnemy(int CR) {
+  srand(time(NULL));
+  int atkCCR = CR * (40 + (rand()%20)) / 100, statCCR = CR-atkCCR;
+  int dmg = atkCCR * (40 + (rand()%20)) / 100, acc = (atkCCR-dmg)/2;
+  int hp = statCCR * (40 + (rand()%20)) / 100, ar = (statCCR-hp)/2;
+
+  Crewmate enemyCrewmate = Crewmate(hp, ar, acc, dmg, "Placeholder", "Placeholder");
+  return enemyCrewmate;
+}
+
+int Crewmate::getCR() const{
+  return (dmgBonus + (2*accBonus)) + (maxHealth+(2*armorRating));
+}
+int* Crewmate::getStats() const{
+  int *temp = new int[6]; //HP, maxHP, AR, dmgBonus, accBonus, CR
   temp[0] = health; temp[1] = maxHealth; temp[2] = armorRating; 
-  temp[3] = dmgBonus; temp[4] = accBonus;
+  temp[3] = dmgBonus; temp[4] = accBonus; temp[5] = getCR();
   return temp;
 }
+
 void Crewmate::printInfo() { //mostly for testing purposes.
   cout << "Crewmate Name: " << name << ", Onboard Ship: " << (ship == nullptr ? "None" : ((Ship*)ship)->name) 
   << ", Assigned to Weapon: " << (assignedTo == nullptr ? "None" : ((Weapon*)assignedTo)->name) << "\n";
   cout << "Description: " << desc << "\n";
-  printf("HP: %d/%d, AR: %d, Accuracy Bonus: %d, Damage Bonus: %d, Occupied: %s\n\n", health, maxHealth, armorRating, accBonus, dmgBonus, occupied ? "true":"false");
+  printf("HP: %d/%d, AR: %d, Accuracy Bonus: %d, Damage Bonus: %d, Occupied: %s, CR: %d\n\n", health, maxHealth, armorRating, accBonus, dmgBonus, occupied ? "true":"false", getCR());
 }
+
 
 Weapon::Weapon (int hp, int dmg, int acc, int ar, int cS, string n, string d) : //main constructor
       maxHealth(hp), crewmateSlots(cS), name(n), desc(d) {
@@ -48,11 +78,33 @@ Weapon::Weapon (int hp, int dmg, int acc, int ar, int cS, string n, string d) : 
         for (int i=0; i<crewmateSlots; i++) assignedCrew[i] = nullptr;
         specialType = none; target = nullptr; ship = nullptr;
       }
+      
 Weapon::Weapon() : maxHealth(0), crewmateSlots(0) {} //Default constructors for placeholders in arrays
+Weapon::Weapon(const Weapon& w) {
+  int* s = w.getStats();
+  maxHealth=s[1]; crewmateSlots = s[3]; name = w.name; desc = w.desc;
+  atkDamage = s[5]; accuracy = s[6]; armorRating = s[2];
+  health = s[0]; specialType = w.specialType; target = w.target;
+  operational = health>0;
+  assignedCrew = new Crewmate*[crewmateSlots];
+  for (int i=0; i<w.crewmateSlots; i++) assignedCrew[i] = w.assignedCrew[i];
+}
+
+void Weapon::operator=(const Weapon& w) {
+  //HP, maxHP, AR, CrewmateSlots, CrewmatesEquipped, BaseDamage, BaseAccuracy, totalDamage, totalAccuracy, CR
+  int* s = w.getStats();
+  maxHealth=s[1]; crewmateSlots = s[3]; name = w.name; desc = w.desc;
+  atkDamage = s[5]; accuracy = s[6]; armorRating = s[2];
+  health = s[0]; specialType = w.specialType; target = w.target;
+  operational = health>0;
+  assignedCrew = new Crewmate*[crewmateSlots];
+  for (int i=0; i<w.crewmateSlots; i++) assignedCrew[i] = w.assignedCrew[i];
+}
 
 bool Weapon::isValid() { //A simple check to see if the default constructor was used
   return this != nullptr && maxHealth != 0;
 }
+
 void Weapon::damage(int atkdmg) { //For use when a weapon TAKES damage. Should really only be called by Ship::damage(). Inflicts damage on all assigned crewmates as well.
   health -= ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0);
   cout << name << " has taken " << ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0) << " damage.\n";
@@ -64,6 +116,7 @@ void Weapon::damage(int atkdmg) { //For use when a weapon TAKES damage. Should r
     if (assignedCrew[i]->isValid())
       assignedCrew[i]->damage(atkdmg - armorRating); //So the final damage to crewmates is atkdmg - shipAR - weaponAR - crewAR. Should it be this way?
 }
+
 bool Weapon::rollHit() { //Adds up baseAccuracy and all crew modifiers and rolls to hit.
   if (isValid() && operational) {
     srand(time(NULL));
@@ -75,6 +128,7 @@ bool Weapon::rollHit() { //Adds up baseAccuracy and all crew modifiers and rolls
   }
   return false;
 }
+
 //This next one was going to be implemented into the combat handler instead, but I realized I could just do it from here. This should only be called from Ship::runAttacks().
 bool Weapon::attack() { //Adds up baseDamage and all the modifiers, makes an attack roll with rollHit(), and deals damage to the enemy ship and target weapon. Also does onAttack special effects.
   if (isValid() && isOperational(false)) {
@@ -96,6 +150,7 @@ bool Weapon::attack() { //Adds up baseDamage and all the modifiers, makes an att
   }
   return false;
 }
+
 bool Weapon::assignCrew(int slot, Crewmate* c) { //Assigns a crewmate to a weapon in the slot provided.
   if (slot<crewmateSlots && c->isValid() && !c->occupied) {
     unassignCrew(slot);
@@ -106,6 +161,7 @@ bool Weapon::assignCrew(int slot, Crewmate* c) { //Assigns a crewmate to a weapo
   }
   return false;
 }
+
 bool Weapon::unassignCrew(int slot) { //Used to unassign a crewmate without replacing it. Will just set the crewmate slot to nullptr.
   if (slot<crewmateSlots && assignedCrew[slot]->isValid()) {
     assignedCrew[slot] -> occupied = false;
@@ -115,6 +171,7 @@ bool Weapon::unassignCrew(int slot) { //Used to unassign a crewmate without repl
   }
   return false;
 }
+
 bool Weapon::setTarget(Weapon *t) {
   if (t->isValid()) {
     target = t;
@@ -122,9 +179,11 @@ bool Weapon::setTarget(Weapon *t) {
   }
   return false;
 }
+
 void Weapon::unsetTarget() {
   target = nullptr;
 }
+
 bool Weapon::isOperational(bool v = false) { //send in true to toggle operability, used to query operability and check that someone's assigned to it
   if (v) operational = !operational;
   bool hasAssigned = false;
@@ -133,9 +192,25 @@ bool Weapon::isOperational(bool v = false) { //send in true to toggle operabilit
   }
   return operational && hasAssigned;
 }
+
 Crewmate** Weapon::getAssigned() {return assignedCrew;}
 
-int* Weapon::getStats() {
+Weapon Weapon::generateEnemy(int CR) {
+  srand(time(NULL));
+  int cSlots = 1+(rand()%5); CR-=(cSlots*4);
+  int atkCCR = CR * (40 + (rand()%20)) / 100, statCCR = CR-atkCCR;
+  int dmg = atkCCR * (40 + (rand()%20)) / 100, acc = (atkCCR-dmg)/2;
+  int hp = statCCR * (40 + (rand()%20)) / 100, ar = (statCCR-hp)/2;
+
+  Weapon enemyWeapon = Weapon(hp, dmg, acc, ar, cSlots, "Placeholder", "Placeholder");
+  return enemyWeapon;
+}
+
+int Weapon::getCR() const{
+  return (atkDamage + (2*accuracy)) + (maxHealth + (2*armorRating)) + (crewmateSlots*4);
+}
+
+int* Weapon::getStats() const{
   int equippedC = 0, dmgTotal = atkDamage, accTotal = accuracy;
   for (int i=0; i<crewmateSlots; i++) {
     if (assignedCrew[i]->isValid()) {
@@ -144,20 +219,22 @@ int* Weapon::getStats() {
       accTotal += assignedCrew[i]->accBonus;
     }
   }
-  int *temp = new int[9]; //HP, maxHP, AR, CrewmateSlots, CrewmatesEquipped, BaseDamage, BaseAccuracy, totalDamage, totalAccuracy
+  int *temp = new int[10]; //HP, maxHP, AR, CrewmateSlots, CrewmatesEquipped, BaseDamage, BaseAccuracy, totalDamage, totalAccuracy, CR
   temp[0] = health; temp[1] = maxHealth; temp[2] = armorRating; 
   temp[3] = crewmateSlots; temp[4] = equippedC;  
-  temp[5] = atkDamage; temp[6] = accuracy; temp[7] = dmgTotal; temp[8] = accTotal;
+  temp[5] = atkDamage; temp[6] = accuracy; temp[7] = dmgTotal; temp[8] = accTotal; temp[9] = getCR();
   return temp;
 }
+
 void Weapon::printInfo() { //mostly for testing purposes.
   int* stats = getStats();
   cout << "Weapon Name: " << name << ", On Ship: " << (ship == nullptr ? "None" : ((Ship*)ship)->name) << "\n";
   cout << "Description: " << desc << "\n";
   printf("HP: %d/%d, AR: %d, Base Accuracy: %d, Base Damage: %d\n", health, maxHealth, armorRating, accuracy, atkDamage);
   printf("Crewmate Assignment Slots Filled: %d/%d, Operational: %s\n", stats[4], stats[3], isOperational() ? "true":"false");
-  printf("Effective Damage: %d, Effective Accuracy: %d\n\n", stats[7], stats[8]);
+  printf("Effective Damage: %d, Effective Accuracy: %d, CR: %d\n\n", stats[7], stats[8], stats[9]);
 }
+
 
 Ship::Ship (int hp, int baseArmor, int weaponS, int crewmateS, int cargoS, string n, string d) : //main constructor
   maxHealth(hp), weaponSlots(weaponS), crewmateSlots(crewmateS), cargoSize(cargoS), name(n), desc(d)
@@ -171,6 +248,7 @@ Ship::Ship (int hp, int baseArmor, int weaponS, int crewmateS, int cargoS, strin
     for (int i=0; i<weaponSlots; i++) weapons[i] = nullptr;
     specialType = none;
   }
+
 Ship::Ship () : maxHealth(0), weaponSlots(0), crewmateSlots(0), cargoSize(0), name(""), desc("") {} //default constructor for placeholders in arrays
 
 void Ship::damage (int atkdmg, Weapon *target) { //for when a ship TAKES damage. Should probably only be called by Weapon::attack(), and by extension Ship::runAttacks().
@@ -181,22 +259,31 @@ void Ship::damage (int atkdmg, Weapon *target) { //for when a ship TAKES damage.
     /*Send Game Over state somehow */
     cout << name << " has capsized!";
   }
+
   if (target->isValid())
     target->damage(atkdmg - armorRating);
 }
+
 int Ship::emptyCargo() { //For cashing out at port. Returns the number of cargo held before emptying, to add to money(?)
   int temp = cargoHeld;
   cargoHeld = 0;
   return temp;
 }
+
 int Ship::repair() { //returns the value to deduct from money in game handler (it just costs the amount of health repaired, this can be changed to balance if needed)
   int temp = health;
   health = maxHealth;
   return maxHealth - temp;
 }
+
+bool Ship::isValid() {
+  return this != nullptr && maxHealth != 0;
+}
+
 void Ship::reinforce(int amt) { //todo: Probably balance this shit somehow, seems pretty broken if you can do it infinitely
   armorRating += amt; //price and money handling will be done in main game loop, this is just the stat change
 }
+
 int* Ship::getStats() {
   int equippedW = 0, equippedC = 0;
   for (int i=0; i<weaponSlots; i++)
@@ -205,13 +292,14 @@ int* Ship::getStats() {
   for (int i=0; i<crewmateSlots; i++)
     if (crew[i]->isValid())
       equippedC++;
-  int *temp = new int[9]; //HP, maxHP, AR, WeaponSlots, WeaponsEquipped, CrewmateSlots, CrewmatesEquipped, CargoSize, CargoHeld
+  int *temp = new int[10]; //HP, maxHP, AR, WeaponSlots, WeaponsEquipped, CrewmateSlots, CrewmatesEquipped, CargoSize, CargoHeld, CR
   temp[0] = health; temp[1] = maxHealth; temp[2] = armorRating; 
   temp[3] = weaponSlots; temp[4] = equippedW;  
   temp[5] = crewmateSlots; temp[6] = equippedC;
-  temp[7] = cargoSize; temp[8] = cargoHeld;
+  temp[7] = cargoSize; temp[8] = cargoHeld; temp[9] = getCR();
   return temp;
 }
+
 bool Ship::addCrew(Crewmate* c) { //Finds an empty crew slot and adds crew to it. Switching out crewmates is not yet implemented, they are permanently on the crew if added so far
   for (int i=0; i<crewmateSlots; i++) {
     if (!crew[i]->isValid()) {
@@ -233,6 +321,7 @@ bool Ship::addWeapon(Weapon* w) {//Finds an empty weapon slot and adds weaopn to
   }
   return false;
 }
+
 // Maybe merge these two with addCrew and addWeapon? Currently those ones just fill any empty slot available, but clearly we need a way
 // to switch out weapons/crewmates when all the slots are full. With Weapon::assignCrew, there are few enough slots that you can just manually choose, but
 // if a ship has 30 crew slots it doesn't really make sense to force players to figure out slots rather than just filling in crew until it's full, then switching
@@ -262,6 +351,7 @@ bool Ship::switchCrew(int slot, Crewmate *c) { //This should not be run to add c
   }
   return false;
 }
+
 bool Ship::switchWeapon(int slot, Weapon *w) { //This should not be run to add weapons to empty slots, only to switch out a weapon with a new one.
   if (slot<weaponSlots && w->isValid()) {
     if (weapons[slot]->isValid()) { //If there's already a weapon in this slot, set its target and ship to null
@@ -285,19 +375,23 @@ bool Ship::switchWeapon(int slot, Weapon *w) { //This should not be run to add w
   }
   return false;
 }
+
 void Ship::runAttacks() {
   for (int i=0; i<weaponSlots; i++)
     if (weapons[i]->isValid()) weapons[i]->attack();
   for (int i=0; i<crewmateSlots; i++)
     if (crew[i]->isValid() && crew[i]->specialType == Crewmate::specialTypes::eachTurn) crew[i]->specialEffects();
 }
+
 Crewmate** Ship::getCrew() {return crew;}
+
 Weapon** Ship::getWeapons() {return weapons;}
+
 void Ship::printInfo() { //mostly for testing purposes.
   int* stats = getStats();
   cout << "Ship Name: " << name << "\n";
   cout << "Description: " << desc << "\n";
-  printf("HP: %d/%d, AR: %d\n", health, maxHealth, armorRating);
+  printf("HP: %d/%d, AR: %d, CR: %d\n", health, maxHealth, armorRating, stats[9]);
   printf("Weapon Slots Filled: %d/%d, Crewmate Slots Filled: %d/%d\n", stats[4], stats[3], stats[6], stats[5]);
   printf("Printing Weapons: \n\n");
   for (int i=0; i<weaponSlots; i++)
@@ -310,33 +404,67 @@ void Ship::printInfo() { //mostly for testing purposes.
   printf("\n\n");
 }
 
-Ship* Ship::generateEncounter() {//TODO: Make this, probably implement a version for crewmates/weapons as well
-  return nullptr;
+Ship Ship::generateEncounter(int* outerWCR, int* outerCCR) {//TODO: Make this, probably implement a version for crewmates/weapons as well
+  int CR = this->getCR();
+  srand(time(NULL));
+  int sCR = (CR * 0.3); //CR going to stats
+  int wCR = (CR * 0.1) * ((rand()%2) + 3); //CR going to weapons
+  int cCR = (CR * 0.7) - wCR; //CR going to crew
+
+  int hp = sCR * (70+(rand()%30)) / 100; //60-90% of stats CR (which is 30% of overall CR) goes to health
+  int ar = (sCR - hp)/2; //The remaining stats CR goes to armor, divided by 2 because I decided to weight it that way
+
+  int wSlots = 1 + rand()%(int)(wCR/200); wCR -= wSlots*4;
+  int cSlots = wSlots + rand()%(int)(cCR/100); cCR -= cSlots*2;
+
+  int cargo = CR * (((rand()%100) + 50)/100);
+
+  string n = "Placeholder"; string d = "Placeholder"; //TODO: get these to read from the flavortext files
+  Ship enemyShip(hp, ar, wSlots, cSlots, cargo, n, d);
+
+  *outerWCR = wCR; *outerCCR = cCR;
+  return enemyShip;
 }
 
-void Ship::autoConfigure(Ship* enemyShip) {
+int Ship::getCR() {
+  int CR = 0;
+  for (int i=0; i<weaponSlots; i++)
+    if (weapons[i]->isValid() && weapons[i]->isOperational())
+      CR += weapons[i]->getCR();
+
+  for (int i=0; i<crewmateSlots; i++)
+    if (crew[i]->isValid())
+      CR += crew[i]->getCR();
+
+  return ((weaponSlots*4) + (crewmateSlots*2)) + (maxHealth + (2*armorRating)) + CR;
+}
+
+void Ship::autoConfigure(Ship* enemyShip) {//Meant to be a shortcut for configuration in battle. I imagine it'll be a hassle to test encounters if we have to set everything every time.
   for (int i=0; i<weaponSlots; i++) { //Try to make sure every weapon has at least one crewmate
     for (int j=0; j<crewmateSlots; j++) {
-      if (weapons[i]->getStats()[4] == 0 && !crew[j]->occupied) {
+      if (weapons[i]->isValid() && weapons[i]->getStats()[0] > 0 && weapons[i]->getStats()[4] == 0 && !crew[j]->occupied) {
         weapons[i]->assignCrew(0, crew[j]);
-        break;
       }
     }
   }
   for (int i=0; i<weaponSlots; i++) //Assign other crewmates on a FCFS basis
     for (int j=0; j<crewmateSlots; j++)
-      if (weapons[i]->isValid() && crew[j]->isValid())
-        if (!crew[j]->occupied)
-          for (int k=0; k<weapons[i]->crewmateSlots; k++)
-            if (weapons[i]->getAssigned()[k] == nullptr) 
-              weapons[i]->assignCrew(k, crew[j]);
-  srand(time(NULL));
-  for (int i=0; i<weaponSlots; i++) //Point our weapons at random enemy weapons
-    if (weapons[i]->isValid())
-      weapons[i]->setTarget(enemyShip->getWeapons()[rand()%(enemyShip->weaponSlots)]);
+      if (weapons[i]->isValid() && weapons[i]->isOperational() && crew[j]->isValid() && !crew[j]->occupied)
+        for (int k=0; k<weapons[i]->crewmateSlots; k++)
+          if (weapons[i]->getAssigned()[k] == nullptr || !weapons[i]->getAssigned()[k]->isValid()) 
+            weapons[i]->assignCrew(k, crew[j]);
+  for (int i=0; i<weaponSlots; i++) //Point our weapons at random (valid and operational) enemy weapons
+    if (weapons[i]->isValid() && weapons[i]->isOperational()) {
+      int j;
+      srand(time(NULL));
+      do {
+        j = rand()%enemyShip->weaponSlots;
+      } while (!(enemyShip->getWeapons()[j]->isValid() && enemyShip->getWeapons()[j]->getStats()[0] > 0));
+      weapons[i]->setTarget(enemyShip->getWeapons()[j]);
+    }
 }
 
-void Ship::unsetWeapons() {
+void Ship::unsetWeapons() { //Just meant to be called after an encounter is won tbh
   for (int i=0; i<weaponSlots; i++)
     if (weapons[i]->isValid()) weapons[i]->unsetTarget();
 }

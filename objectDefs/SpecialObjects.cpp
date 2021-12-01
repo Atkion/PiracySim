@@ -31,10 +31,17 @@ void Musketeer::printInfo() {
 }
 //Get the enemy ship pointer from the combat loop somehow, will need to be built into the handler. The current method is fucked, unsafe, and frankly unacceptable.
 void Musketeer::specialEffects() {//todo: fix this terrible fucking thing when possible
-    Ship *enemyShip = (Ship*)(((Ship*)ship)->getWeapons()[0]->target->ship);
+    Ship *enemyShip;
     srand(time(NULL));
-    int i;
+    for (int i=0; i<((Ship*)ship)->weaponSlots; i++) { //This is pretty damn safe now, but not technically perfect. Idk how to do it better without an actual pointer to the enemy.
+        if (((Ship*)ship)->getWeapons()[i] != nullptr && ((Ship*)ship)->getWeapons()[i]->target != nullptr) {
+            enemyShip = (Ship*)(((Ship*)ship)->getWeapons()[i]->target->ship);
+            if (enemyShip->isValid()) break;
+        }
+    }
     if (!occupied) {
+        int i;
+        enemyShip->printInfo();
         do { i = rand() % enemyShip->weaponSlots; } while (!enemyShip->getWeapons()[i]->isValid());
 
         if (rand() % 100 < 50) {
