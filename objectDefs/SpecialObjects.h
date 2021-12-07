@@ -1,5 +1,8 @@
 #pragma once
 #include "CoreObjects.h"
+#include <string>
+
+using namespace std;
 //Subclasses for Crewmates, Weapons, and Ships will go here.
 //A subclass is NOT needed for every different crew/weapon/ship, only if they have some special feature that is not possible to implement using the base stats
 //The virtual functions that can be overloaded in special classes are currently:

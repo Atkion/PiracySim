@@ -22,8 +22,8 @@ using namespace std;
 */
 
 //No idea if this one will make it into the final game, more of an example than anything
-Musketeer::Musketeer(int hp, int ar, int aB, int dB, string n, string d) : Crewmate(hp, ar, aB, dB, n, d) { specialType = eachTurn; } //Call parent constructor then set specialType
-Musketeer::Musketeer() : Crewmate() { specialType = eachTurn; } //Default constructor
+Musketeer::Musketeer(int hp, int ar, int aB, int dB, string n, string d) : Crewmate(hp, ar, aB, dB, n, d) { specialType = eachTurn; special = "Special Effect (Musketeer): If this crewmate is not assigned to a weapon, they will make an independent rifle attack against an enemy weapon every turn.";} //Call parent constructor then set specialType
+Musketeer::Musketeer() : Crewmate() { specialType = eachTurn; special = "Special Effect (Musketeer): If this crewmate is not assigned to a weapon, they will make an independent rifle attack against an enemy weapon every turn.";} //Default constructor
 
 void Musketeer::printInfo() { 
     Crewmate::printInfo();

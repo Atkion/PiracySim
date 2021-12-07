@@ -18,7 +18,7 @@ Crewmate::Crewmate() : maxHealth(0), accBonus(0), dmgBonus(0), alive(true), name
 Crewmate::Crewmate(const Crewmate& c) {
   int* s = c.getStats();
   maxHealth = s[1]; accBonus = s[4]; dmgBonus = s[3]; name = c.name; desc = c.desc;
-  health = s[0]; alive = c.alive; occupied = c.occupied; specialType = c.specialType;
+  health = s[0]; alive = c.alive; occupied = c.occupied; specialType = c.specialType; armorRating = c.armorRating;
 }
 
 void Crewmate::operator=(const Crewmate& c) {
@@ -87,7 +87,7 @@ Weapon::Weapon(const Weapon& w) {
   health = s[0]; specialType = w.specialType; target = w.target;
   operational = health>0;
   assignedCrew = new Crewmate*[crewmateSlots];
-  for (int i=0; i<w.crewmateSlots; i++) assignedCrew[i] = w.assignedCrew[i];
+  for (int i=0; i<w.crewmateSlots; i++) assignedCrew[i] = w.assignedCrew[i];  
 }
 
 void Weapon::operator=(const Weapon& w) {
@@ -226,6 +226,16 @@ int* Weapon::getStats() const{
   return temp;
 }
 
+int Weapon::repair() {
+  int healed = maxHealth - health;
+  health = maxHealth; 
+  return healed;
+}
+
+int Weapon::getRepairCost() {
+  return maxHealth - health;
+}
+
 void Weapon::printInfo() { //mostly for testing purposes.
   int* stats = getStats();
   cout << "Weapon Name: " << name << ", On Ship: " << (ship == nullptr ? "None" : ((Ship*)ship)->name) << "\n";
@@ -246,10 +256,31 @@ Ship::Ship (int hp, int baseArmor, int weaponS, int crewmateS, int cargoS, strin
     weapons = new Weapon*[weaponSlots];
     for (int i=0; i<crewmateSlots; i++) crew[i] = nullptr;
     for (int i=0; i<weaponSlots; i++) weapons[i] = nullptr;
-    specialType = none;
+    specialType = none; balance = 0;
   }
 
 Ship::Ship () : maxHealth(0), weaponSlots(0), crewmateSlots(0), cargoSize(0), name(""), desc("") {} //default constructor for placeholders in arrays
+Ship::Ship(const Ship& s) {
+  int* stats = s.getStats();
+  maxHealth=stats[1]; crewmateSlots = stats[3]; name = s.name; desc = s.desc;
+  armorRating = stats[2]; weaponSlots = s.weaponSlots;
+  health = stats[0]; specialType = s.specialType; 
+  crew = new Crewmate*[crewmateSlots];
+  weapons = new Weapon*[weaponSlots];
+  for (int i=0; i<crewmateSlots; i++) crew[i] = nullptr;
+  for (int i=0; i<weaponSlots; i++) weapons[i] = nullptr; balance = 0;
+}
+
+void Ship::operator=(const Ship& s) {
+  int* stats = s.getStats();
+  maxHealth=stats[1]; crewmateSlots = stats[3]; name = s.name; desc = s.desc;
+  armorRating = stats[2];
+  health = stats[0]; specialType = s.specialType; 
+  crew = new Crewmate*[crewmateSlots];
+  weapons = new Weapon*[weaponSlots];
+  for (int i=0; i<crewmateSlots; i++) crew[i] = nullptr;
+  for (int i=0; i<weaponSlots; i++) weapons[i] = nullptr; balance = 0;
+}
 
 void Ship::damage (int atkdmg, Weapon *target) { //for when a ship TAKES damage. Should probably only be called by Weapon::attack(), and by extension Ship::runAttacks().
   health -= ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0);
@@ -264,19 +295,32 @@ void Ship::damage (int atkdmg, Weapon *target) { //for when a ship TAKES damage.
     target->damage(atkdmg - armorRating);
 }
 
-int Ship::emptyCargo() { //For cashing out at port. Returns the number of cargo held before emptying, to add to money(?)
-  int temp = cargoHeld;
+void Ship::sellLoot() { //For cashing out at port. Returns the number of cargo held before emptying, to add to money(?)
+  balance += cargoHeld;
   cargoHeld = 0;
-  return temp;
 }
 
 int Ship::repair() { //returns the value to deduct from money in game handler (it just costs the amount of health repaired, this can be changed to balance if needed)
-  int temp = health;
+  int temp = maxHealth - health;
   health = maxHealth;
-  return maxHealth - temp;
+  for (int i=0; i<weaponSlots; i++) {
+    if (weapons[i]->isValid()) temp += weapons[i]->repair();
+  }
+  for (int i=0; i<crewmateSlots; i++) {//The crew healing is free, it would cost too much otherwise 
+    if (crew[i]->isValid()) crew[i]->health = crew[i]->maxHealth;
+  }
+  return temp;
 }
 
-bool Ship::isValid() {
+int Ship::getRepairCost() { //returns the value to deduct from money in game handler (it just costs the amount of health repaired, this can be changed to balance if needed)
+  int temp = maxHealth - health;
+  for (int i=0; i<weaponSlots; i++) {
+    if (weapons[i]->isValid()) temp += weapons[i]->getRepairCost();
+  }
+  return temp;
+}
+
+bool Ship::isValid() const{
   return this != nullptr && maxHealth != 0;
 }
 
@@ -284,19 +328,19 @@ void Ship::reinforce(int amt) { //todo: Probably balance this shit somehow, seem
   armorRating += amt; //price and money handling will be done in main game loop, this is just the stat change
 }
 
-int* Ship::getStats() {
+int* Ship::getStats() const{
   int equippedW = 0, equippedC = 0;
   for (int i=0; i<weaponSlots; i++)
     if (weapons[i]->isValid())
       equippedW++;
   for (int i=0; i<crewmateSlots; i++)
-    if (crew[i]->isValid())
+    if (crew[i] != nullptr && crew[i]->isValid())
       equippedC++;
-  int *temp = new int[10]; //HP, maxHP, AR, WeaponSlots, WeaponsEquipped, CrewmateSlots, CrewmatesEquipped, CargoSize, CargoHeld, CR
+  int *temp = new int[11]; //HP, maxHP, AR, WeaponSlots, WeaponsEquipped, CrewmateSlots, CrewmatesEquipped, CargoSize, CargoHeld, CR, balance
   temp[0] = health; temp[1] = maxHealth; temp[2] = armorRating; 
   temp[3] = weaponSlots; temp[4] = equippedW;  
   temp[5] = crewmateSlots; temp[6] = equippedC;
-  temp[7] = cargoSize; temp[8] = cargoHeld; temp[9] = getCR();
+  temp[7] = cargoSize; temp[8] = cargoHeld; temp[9] = getCR(); temp[10] = balance;
   return temp;
 }
 
@@ -426,7 +470,7 @@ Ship Ship::generateEncounter(int* outerWCR, int* outerCCR) {//TODO: Make this, p
   return enemyShip;
 }
 
-int Ship::getCR() {
+int Ship::getCR() const{
   int CR = 0;
   for (int i=0; i<weaponSlots; i++)
     if (weapons[i]->isValid() && weapons[i]->isOperational())
