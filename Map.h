@@ -42,5 +42,5 @@ class Map
         void generateIsland(int, int); // create an island with a specific location
         void addShipLocation(int, int);
         void moveShip(int, int); // move the ship x and y amount DOES NOT SET SHIP LOCATION ONLY MOVES
-        string printMapView(int, int, int, int);
+        void printMapView(int, int, int, int);
 };

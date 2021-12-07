@@ -100,7 +100,7 @@ void Map::moveShip(int xAmount, int yAmount)
     shipLocation.second += -yAmount; 
 }
 
-string Map::printMapView(int x, int y, int width, int height)
+void Map::printMapView(int x, int y, int width, int height)
 {
     // stuff for the console
     start_color();
