@@ -23,5 +23,5 @@ class Musketeer: public Crewmate { //No idea if this will make it into the final
         Musketeer(int, int, int, int, string, string);
         Musketeer();
         void printInfo();
-        void specialEffects();
+        void specialEffects(vector<string> *combatLog);
 };

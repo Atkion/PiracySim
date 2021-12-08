@@ -13,6 +13,7 @@ class Port {
 
         void enterPort(Ship *);
         void printMenu(Ship *, int);
+        void printShip(int, int);
         void printWeaponShop(Ship *, int, int, bool);
         void printCrewmateShop(Ship *, int, int, bool);
         void printShipShop(Ship *, int, int, bool);

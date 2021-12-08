@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string>
+#include <vector>
 #include <iostream>
 #include "CoreObjects.h"
 
@@ -32,12 +33,14 @@ bool Crewmate::isValid() { //A simple check to see if the default constructor wa
   return this != nullptr && maxHealth != 0 && alive;
 }
 
-void Crewmate::damage(int atkdmg) { //for use when crewmate TAKES damage. Probably only going to be called by Weapon::damage and by extension Ship::damage, since crew can't be targets.
+void Crewmate::damage(int atkdmg, vector<string> *combatLog) { //for use when crewmate TAKES damage. Probably only going to be called by Weapon::damage and by extension Ship::damage, since crew can't be targets.
   health -= ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0);
-  cout << name << " has taken " << ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0) << " damage.\n";
+  combatLog->push_back(name + " has taken " + to_string((atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0) + " damage.");
+  //cout << name << " has taken " << ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0) << " damage.\n";
   if (health <= 0) {
     alive = false;
-    cout << name << " has died.\n";
+    combatLog->push_back(name + " has died.");
+    //cout << name << " has died.\n";
   } 
 }
 
@@ -47,7 +50,7 @@ Crewmate Crewmate::generateEnemy(int CR) {
   int dmg = atkCCR * (40 + (rand()%20)) / 100, acc = (atkCCR-dmg)/2;
   int hp = statCCR * (40 + (rand()%20)) / 100, ar = (statCCR-hp)/2;
 
-  Crewmate enemyCrewmate = Crewmate(hp, ar, acc, dmg, "Placeholder", "Placeholder");
+  Crewmate enemyCrewmate = Crewmate(hp, ar, acc, dmg, "EnemyCrewmate", "Placeholder");
   return enemyCrewmate;
 }
 
@@ -105,16 +108,18 @@ bool Weapon::isValid() { //A simple check to see if the default constructor was 
   return this != nullptr && maxHealth != 0;
 }
 
-void Weapon::damage(int atkdmg) { //For use when a weapon TAKES damage. Should really only be called by Ship::damage(). Inflicts damage on all assigned crewmates as well.
+void Weapon::damage(int atkdmg, vector<string> *combatLog) { //For use when a weapon TAKES damage. Should really only be called by Ship::damage(). Inflicts damage on all assigned crewmates as well.
   health -= ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0);
-  cout << name << " has taken " << ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0) << " damage.\n";
+  combatLog->push_back(name + " has taken " + to_string((atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0) + " damage.");
+  //cout << name << " has taken " << ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0) << " damage.\n";
   if (health <= 0) {
     operational = false;
-    cout << name << " has been broken is is no longer operable.\n";
+    combatLog->push_back(name + " has been broken and is no longer operable.");
+    //cout << name << " has been broken is is no longer operable.\n";
   }
   for (int i=0; i<crewmateSlots; i++)
     if (assignedCrew[i]->isValid())
-      assignedCrew[i]->damage(atkdmg - armorRating); //So the final damage to crewmates is atkdmg - shipAR - weaponAR - crewAR. Should it be this way?
+      assignedCrew[i]->damage(atkdmg - armorRating, combatLog); //So the final damage to crewmates is atkdmg - shipAR - weaponAR - crewAR. Should it be this way?
 }
 
 bool Weapon::rollHit() { //Adds up baseAccuracy and all crew modifiers and rolls to hit.
@@ -130,19 +135,20 @@ bool Weapon::rollHit() { //Adds up baseAccuracy and all crew modifiers and rolls
 }
 
 //This next one was going to be implemented into the combat handler instead, but I realized I could just do it from here. This should only be called from Ship::runAttacks().
-bool Weapon::attack() { //Adds up baseDamage and all the modifiers, makes an attack roll with rollHit(), and deals damage to the enemy ship and target weapon. Also does onAttack special effects.
+bool Weapon::attack(vector<string> *combatLog) { //Adds up baseDamage and all the modifiers, makes an attack roll with rollHit(), and deals damage to the enemy ship and target weapon. Also does onAttack special effects.
   if (isValid() && isOperational(false)) {
     int mod = 0;
     for (int i=0; i<crewmateSlots; i++)//calculate the modifier
       if (assignedCrew[i]->isValid()) {
         mod += assignedCrew[i]->dmgBonus;
-        if (assignedCrew[i]->specialType == Crewmate::specialTypes::eachAttack) assignedCrew[i]->specialEffects(); // run crew special onAttack effects
+        if (assignedCrew[i]->specialType == Crewmate::specialTypes::eachAttack) assignedCrew[i]->specialEffects(combatLog); // run crew special onAttack effects
       }
-    if (specialType == eachAttack) specialEffects(); // run weapon special onAttack effects
+    if (specialType == eachAttack) specialEffects(combatLog); // run weapon special onAttack effects
     if (target->isValid()) {
       if (rollHit()) {
-        cout << name << " dealt " << atkDamage+mod << " damage to " << target->name <<". \n";
-        ((Ship*)(target->ship))->damage(atkDamage+mod, target);
+        combatLog->push_back(name + " dealt " + to_string(atkDamage+mod) + " damage to " + target->name + ".");
+        //cout << name << " dealt " << atkDamage+mod << " damage to " << target->name <<". \n";
+        ((Ship*)(target->ship))->damage(atkDamage+mod, target, combatLog);
         return true;
       }
       else cout << name << " missed.\n";
@@ -202,7 +208,7 @@ Weapon Weapon::generateEnemy(int CR) {
   int dmg = atkCCR * (40 + (rand()%20)) / 100, acc = (atkCCR-dmg)/2;
   int hp = statCCR * (40 + (rand()%20)) / 100, ar = (statCCR-hp)/2;
 
-  Weapon enemyWeapon = Weapon(hp, dmg, acc, ar, cSlots, "Placeholder", "Placeholder");
+  Weapon enemyWeapon = Weapon(hp, dmg, acc, ar, cSlots, "EnemyCannon", "Placeholder");
   return enemyWeapon;
 }
 
@@ -282,17 +288,20 @@ void Ship::operator=(const Ship& s) {
   for (int i=0; i<weaponSlots; i++) weapons[i] = nullptr; balance = 0;
 }
 
-void Ship::damage (int atkdmg, Weapon *target) { //for when a ship TAKES damage. Should probably only be called by Weapon::attack(), and by extension Ship::runAttacks().
+void Ship::damage (int atkdmg, Weapon *target, vector<string> *combatLog) { //for when a ship TAKES damage. Should probably only be called by Weapon::attack(), and by extension Ship::runAttacks().
   health -= ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0);
-  cout << name << " has been hit and has taken " << ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0) << " damage. ";
-  cout << "Target hit: " << target->name << "\n";
+  combatLog->push_back(name + " has been hit and taken " + to_string((atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0) + " damage.");
+  //cout << name << " has been hit and has taken " << ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0) << " damage. ";
+  combatLog->push_back("Target hit: " + target->name + ".");
+  //cout << "Target hit: " << target->name << "\n";
   if (health <= 0) {
     /*Send Game Over state somehow */
-    cout << name << " has capsized!";
+    combatLog->push_back(name + " has capsized!");
+    //cout << name << " has capsized!";
   }
 
   if (target->isValid())
-    target->damage(atkdmg - armorRating);
+    target->damage(atkdmg - armorRating, combatLog);
 }
 
 void Ship::sellLoot() { //For cashing out at port. Returns the number of cargo held before emptying, to add to money(?)
@@ -420,11 +429,11 @@ bool Ship::switchWeapon(int slot, Weapon *w) { //This should not be run to add w
   return false;
 }
 
-void Ship::runAttacks() {
+void Ship::runAttacks(vector<string> *combatLog) {
   for (int i=0; i<weaponSlots; i++)
-    if (weapons[i]->isValid()) weapons[i]->attack();
+    if (weapons[i]->isValid()) weapons[i]->attack(combatLog);
   for (int i=0; i<crewmateSlots; i++)
-    if (crew[i]->isValid() && crew[i]->specialType == Crewmate::specialTypes::eachTurn) crew[i]->specialEffects();
+    if (crew[i]->isValid() && crew[i]->specialType == Crewmate::specialTypes::eachTurn) crew[i]->specialEffects(combatLog);
 }
 
 Crewmate** Ship::getCrew() {return crew;}
@@ -463,7 +472,7 @@ Ship Ship::generateEncounter(int* outerWCR, int* outerCCR) {//TODO: Make this, p
 
   int cargo = CR * (((rand()%100) + 50)/100);
 
-  string n = "Placeholder"; string d = "Placeholder"; //TODO: get these to read from the flavortext files
+  string n = "GeneratedEnemy"; string d = "Placeholder"; //TODO: get these to read from the flavortext files
   Ship enemyShip(hp, ar, wSlots, cSlots, cargo, n, d);
 
   *outerWCR = wCR; *outerCCR = cCR;
