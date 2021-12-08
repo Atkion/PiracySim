@@ -22,7 +22,7 @@ class Island
         pair<int, int> port;
     public:
         int islandSize;
-        bool islandMap[11][11];
+        bool islandMap[21][21];
         Island(string); // randomly generate stuff
         Island(int, int);
         pair<int, int> getPort();
@@ -37,9 +37,9 @@ class Map
         pair<int, int> shipLocation;
         int height, width;
         vector<Island> islands;
-
+        Ship* ship;
     public:
-        Map(int, int); // set the width and the height
+        Map(int, int, Ship*); // set the width and the height
         Map(int, int, pair<int, int>); // set the width and the height w/ ship location
 
         void generateIsland(int); // create an island a certain distance from the ship

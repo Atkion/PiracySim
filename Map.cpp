@@ -1,5 +1,6 @@
 #include "Map.h"
 #include "objectDefs/CoreObjects.h"
+#include "objectDefs/Port.h"
 #include <stdio.h>      /* printf, scanf, puts, NULL */
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
@@ -47,6 +48,17 @@ Island::Island(int x, int y)
             break;
         }
     }
+    for (int a = 0; a < islandSize; a++)
+    {
+        for(int b = 0; b < islandSize; b++)
+        {
+            if (islandMap[a][b] == true)
+                cout << "O";
+            else
+                cout << "W";
+        }
+        cout << "\n";
+    }
 }
 
 pair<int, int> Island::getLocation()
@@ -67,7 +79,7 @@ void Island::setLocation(int x, int y)
 
 void Island::formIsland(int x, int y, int chance, int size, int direction)
 {
-    double c = 1.25;
+    double c = 1.1;
 
     // base case
     if ((x < 0 || x > size) || (y < 0 || y > size))
@@ -114,9 +126,10 @@ void Island::formIsland(int x, int y, int chance, int size, int direction)
     }
 }
 
-Map::Map(int width_, int height_)
+Map::Map(int width_, int height_, Ship* ship_)
 {
     // set the insace variables
+    ship = ship_;
     width = width_;
     height = height_;
     start_color();
@@ -164,8 +177,30 @@ void Map::addShipLocation(int x, int y)
 
 void Map::moveShip(int xAmount, int yAmount)
 {
+    int x = shipLocation.first + xAmount;
+    int y = shipLocation.second + -yAmount;
+    
+    // loop through islands to check for collisions.
+    for (auto island = islands.begin(); island != islands.end(); ++island)
+    {
+        int ix = island->getLocation().first;
+        int iy = island->getLocation().second;
+        for (int a = 0; a < island->islandSize; a++)
+        {
+            for (int b = 0; b < island->islandSize; b++)
+            {
+                if (x == ix + b && y == iy + a && island->islandMap[b][a] == true)
+                    return;
+                if (x == ix + island->getPort().second && y == iy + island->getPort().first)
+                {
+                    Port port;
+                    port.enterPort(ship);
+                }
+            }
+        }
+    }
     shipLocation.first += xAmount;
-    shipLocation.second += -yAmount; 
+    shipLocation.second += -yAmount;
 }
 
 void Map::printMapView(int x, int y, int width, int height)
@@ -197,9 +232,11 @@ void Map::printMapView(int x, int y, int width, int height)
     {
         for (int j = 0; j < rows; j++)
         {
+            // loop through the vector of islands
             for (auto island = islands.begin(); island != islands.end(); ++island)
             {
-                if ((x + j) == island->getLocation().first && (y + i) == island->getLocation().second)
+
+                if (x + j == island->getLocation().first && y + i == island->getLocation().second)
                 {
                     attron(COLOR_PAIR(3));
                     for (int a = 0; a < island->islandSize; a++)
@@ -209,15 +246,15 @@ void Map::printMapView(int x, int y, int width, int height)
                             if ((island->islandMap[a][b]) == true)
                             {
                                 // mvaddch(j + a, i + b, ' ');
-                                mvaddch(j + a, (i + b) * 2, ' ');
-                                mvaddch(j + a, (i + b) * 2 + 1, ' ');
+                                mvaddch(j + a, (i + b), ' ');
+                                // mvaddch(j + a, (i + b) * 2 + 1, ' ');
                             }
                             else if (island->getPort().first == b && island->getPort().second == a)
                             {
                                 attroff(COLOR_PAIR(3));
                                 attron(COLOR_PAIR(4));
-                                mvaddch(j + a, (i + b) * 2, ' ');
-                                mvaddch(j + a, (i + b) * 2 + 1, ' ');
+                                mvaddch(j + a, (i + b), ' ');
+                                // mvaddch(j + a, (i + b) * 2 + 1, ' ');
                                 attroff(COLOR_PAIR(4));
                                 attron(COLOR_PAIR(3));
                             }
@@ -229,8 +266,8 @@ void Map::printMapView(int x, int y, int width, int height)
             if ((x + j) == shipLocation.first && (y + i) == shipLocation.second)
             {
                 attron(COLOR_PAIR(2));
-                mvaddch(j, i * 2, ' ');
-                mvaddch(j, i * 2 + 1, ' ');
+                mvaddch(j, i, ' ');
+                // mvaddch(j, i * 2 + 1, ' ');
                 attroff(COLOR_PAIR(2));
             }
         }

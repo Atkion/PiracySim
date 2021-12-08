@@ -89,17 +89,19 @@ int main (void)
   EnemyShip.printInfo();
   BastardsGreed.printInfo();
 
-  int i; cin >> i;
+  // int i; cin >> i;
 
-  Port thePort; //This should be all you have to do from the map screen, everything else is handled internally
-  thePort.enterPort(&BastardsGreed);
+  // Port thePort; //This should be all you have to do from the map screen, everything else is handled internally
+  // thePort.enterPort(&BastardsGreed);
 
   /*-------------------------------------------- 
     |             Map initialization            |
     --------------------------------------------*/
-  Map map(1000, 1000);
+  Map map(1000, 1000, &BastardsGreed);
   map.addShipLocation(500, 500);
-  map.generateIsland(502, 502);
+  map.generateIsland(500, 510);
+
+  int i; cin >> i;
   // map.printMapView(480, 480, 40, 40);
   // map.moveShip(1,1);
   // map.printMapView(480, 480, 40, 40);
