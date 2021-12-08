@@ -1,6 +1,7 @@
 #pragma once
 
 #include "objectDefs/CoreObjects.h"
+#include "objectDefs/Port.h"
 #include <iostream>
 #include <string>
 #include <utility>
@@ -16,12 +17,15 @@ using namespace std;
 class Island
 {
     private:
-        char islandMap[5][5];
         pair<int, int> location;
-        void formIsland();
+        void formIsland(int, int, int, int, int);
+        pair<int, int> port;
     public:
+        int islandSize;
+        bool islandMap[11][11];
         Island(string); // randomly generate stuff
         Island(int, int);
+        pair<int, int> getPort();
         pair<int, int> getLocation(); // get location of the island;
         void setLocation(int x, int y);
         string name;
