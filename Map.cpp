@@ -15,8 +15,6 @@ using namespace std;
 Island::Island(string name_)
 {
     name = name_;
-    /* initialize random seed: */
-    srand(time(NULL));
     
     /* generate random number between 1 and 10: */
     int chance;
@@ -36,8 +34,6 @@ Island::Island(int x, int y)
             islandMap[a][b] = false;
         }
     }
-    /* initialize random seed: */
-    srand(time(nullptr));
     formIsland(islandSize / 2,islandSize / 2,100,islandSize,0);
     for (int y = islandSize / 2; y < islandSize; y++)
     {
@@ -132,6 +128,10 @@ Map::Map(int width_, int height_, Ship* ship_)
     ship = ship_;
     width = width_;
     height = height_;
+
+    /* initialize random seed: */
+    srand(time(NULL));
+
     start_color();
 
     init_pair(1, COLOR_BLUE, COLOR_BLUE); // water
@@ -273,5 +273,53 @@ void Map::printMapView(int x, int y, int width, int height)
         }
     }
     refresh();
+}
+
+void Map::enterMap()
+{
+    initscr();
+  keypad(stdscr, TRUE);
+  int ch;
+  ch = getch();
+  do
+  {
+    ch = getch();
+    switch (ch)
+    {
+    case KEY_RIGHT:
+      moveShip(0,-1);
+      printMapView(480, 480, 0, 0);
+      // printw("RIGHT");
+      break;
+    case KEY_LEFT:
+      moveShip(0,1);
+      printMapView(480, 480, 0, 0);
+      // printw("LEFT");
+      break;
+    case KEY_UP:
+      moveShip(-1,0);
+      printMapView(480, 480, 0, 0);
+      // printw("UP");
+      break;
+    case KEY_DOWN:
+      moveShip(1,0);
+      printMapView(480, 480, 0, 0);
+      // printw("DOWN");
+      break;
+    default:
+      printw("USE ARROW KEYS!");
+      break;
+    }
+  } while (ch != KEY_END);
+  
+  ch = getch();
+
+  if (ch == KEY_LEFT)
+  {
+      printw("Left arrow is pressed\n");
+  }
+  refresh();
+
+  ch = getch();
 }
 

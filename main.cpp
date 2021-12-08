@@ -102,7 +102,8 @@ int main (void)
     --------------------------------------------*/
   Map map(1000, 1000, &BastardsGreed);
   map.addShipLocation(500, 500);
-  map.generateIsland(500, 510);
+  map.generateIsland(490, 510);
+  map.generateIsland(490, 530);
 
   int i; cin >> i;
   // map.printMapView(480, 480, 40, 40);
@@ -123,49 +124,5 @@ int main (void)
   // refresh();
   // int i; cin >> i;
 
-
-  initscr();
-  keypad(stdscr, TRUE);
-  int ch;
-  ch = getch();
-  do
-  {
-    ch = getch();
-    switch (ch)
-    {
-    case KEY_RIGHT:
-      map.moveShip(0,-1);
-      map.printMapView(480, 480, 0, 0);
-      // printw("RIGHT");
-      break;
-    case KEY_LEFT:
-      map.moveShip(0,1);
-      map.printMapView(480, 480, 0, 0);
-      // printw("LEFT");
-      break;
-    case KEY_UP:
-      map.moveShip(-1,0);
-      map.printMapView(480, 480, 0, 0);
-      // printw("UP");
-      break;
-    case KEY_DOWN:
-      map.moveShip(1,0);
-      map.printMapView(480, 480, 0, 0);
-      // printw("DOWN");
-      break;
-    default:
-      printw("USE ARROW KEYS!");
-      break;
-    }
-  } while (ch != KEY_END);
-  
-  ch = getch();
-
-  if (ch == KEY_LEFT)
-  {
-      printw("Left arrow is pressed\n");
-  }
-  refresh();
-
-  ch = getch();
+  map.enterMap();
 }

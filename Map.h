@@ -47,4 +47,5 @@ class Map
         void addShipLocation(int, int);
         void moveShip(int, int); // move the ship x and y amount DOES NOT SET SHIP LOCATION ONLY MOVES
         void printMapView(int, int, int, int);
+        void enterMap();
 };
