@@ -30,7 +30,7 @@ void Musketeer::printInfo() {
     cout << "Special Effect (Musketeer): If this crewmate is not occupied, they will make an extra rifle attack against a random enemy weapon every turn (Acc 50%, Dmg 25)\n";
 }
 //Get the enemy ship pointer from the combat loop somehow, will need to be built into the handler. The current method is fucked, unsafe, and frankly unacceptable.
-void Musketeer::specialEffects() {//todo: fix this terrible fucking thing when possible
+void Musketeer::specialEffects(vector<string> *combatLog) {//todo: fix this terrible fucking thing when possible
     Ship *enemyShip;
     srand(time(NULL));
     for (int i=0; i<((Ship*)ship)->weaponSlots; i++) { //This is pretty damn safe now, but not technically perfect. Idk how to do it better without an actual pointer to the enemy.
@@ -41,14 +41,19 @@ void Musketeer::specialEffects() {//todo: fix this terrible fucking thing when p
     }
     if (!occupied) {
         int i;
-        enemyShip->printInfo();
+        //enemyShip->printInfo();
         do { i = rand() % enemyShip->weaponSlots; } while (!enemyShip->getWeapons()[i]->isValid());
 
         if (rand() % 100 < 50) {
             //Somehow report success to combat log
-            cout << name << " dealt 25 damage to " << enemyShip->getWeapons()[i]->name << ".\n";
-            enemyShip->damage(25, enemyShip->getWeapons()[i]);
+            combatLog->push_back(name + " dealt 25 damage to " + enemyShip->getWeapons()[i]->name + ".");
+            //cout << name << " dealt 25 damage to " << enemyShip->getWeapons()[i]->name << ".\n";
+            enemyShip->damage(25, enemyShip->getWeapons()[i], combatLog);
         }
-        else {/*somehow report failure to combat log*/ cout << name << " missed their rifle attack.\n"; }
+        else {
+            /*somehow report failure to combat log*/
+            combatLog->push_back(name + " missed their rifle attack."); 
+            //cout << name << " missed their rifle attack.\n"; 
+            }
     }
 }

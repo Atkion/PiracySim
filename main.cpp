@@ -2,7 +2,7 @@
 #include "WindowSetup.h"
 #include "objectDefs/CoreObjects.h"
 #include "objectDefs/SpecialObjects.h"
-//#include "objectDefs/CombatHandler.h"
+#include "objectDefs/CombatHandler.h"
 #include "objectDefs/Port.h"
 #include "Map.h"
 #include "PDCurses/curses.h"
@@ -79,7 +79,7 @@ int main (void)
   EnemyShip.addCrew(&EnemyCrew); EnemyShip.addWeapon(&EnemyCannon); /*EnemyCannon.assignCrew(0, &EnemyCrew); //Enemy ship setup
 
   Ballista.setTarget(&EnemyCannon); Ballista2.setTarget(&EnemyCannon); Cannon.setTarget(&EnemyCannon); //Setting sights on enemy cannon
-  EnemyCannon.setTarget(&Ballista);*/
+  EnemyCannon.setTarget(&Ballista);
   BastardsGreed.autoConfigure(&EnemyShip); 
   EnemyShip.autoConfigure(&BastardsGreed);
 
@@ -87,9 +87,9 @@ int main (void)
   EnemyShip.runAttacks();
   
   EnemyShip.printInfo();
-  BastardsGreed.printInfo();
-
-  int i; cin >> i;
+  BastardsGreed.printInfo();*/
+  CombatHandler encounter(&BastardsGreed, &EnemyShip);
+  encounter.enterCombat();
 
   Port thePort; //This should be all you have to do from the map screen, everything else is handled internally
   thePort.enterPort(&BastardsGreed);

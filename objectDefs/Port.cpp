@@ -42,7 +42,6 @@ void Port::enterPort(Ship *ship) { //The main method to call from the map screen
     initscr();
     start_color();
     keypad(stdscr, TRUE);
-    string prev = "main";
     printMenu(ship, 1);
 }
 
@@ -68,6 +67,7 @@ void Port::printMenu(Ship *ship, int highlighted) {
     mvprintw(16, 0, " Challenge Rating: "); printw(to_string(shipStats[9]).c_str());
     for (int i=0; i<19; i++) mvaddch(i, 35, '|');
     for (int i=0; i<35; i++) mvaddch(18, i, '_');
+    printShip(2, 40);
 
     for (int i=0; i<col; i++) mvaddch((row*menuScale), i, '_'); //setup boundaries
     for (int i=0; i<col; i++) mvaddch((row*menuScale + menuRow/2), i, '_');
@@ -486,3 +486,28 @@ void Port::printShipShop(Ship *ship, int highlighted, int highlighted2 = 0, bool
             break;
     }
 }
+
+void Port::printShip(int y, int x) {
+    mvprintw(y, x, "           Ya...___|__..aab     .   .    ");
+    mvprintw(y+1, x, "            Y88a  Y88o  Y88a   (     )   ");
+    mvprintw(y+2, x, "             Y88b  Y88b  Y88b   `.oo'    ");
+    mvprintw(y+3, x, "             :888  :888  :888  ( (`-'    ");
+    mvprintw(y+4, x, "    .---.    d88P  d88P  d88P   `.`.     ");
+    mvprintw(y+5, x, "   / .-._)  d8P'\"\"\"|\"\"\"'-Y8P      `.`.   ");
+    mvprintw(y+6, x, "  ( (`._) .-.  .-. |.-.  .-.  .-.   ) )  ");
+    mvprintw(y+7, x, "   \\ `---( O )( O )( O )( O )( O )-' /   ");
+    mvprintw(y+8, x, "    `.    `-'  `-'  `-'  `-'  `-'  .' CJ ");
+    mvprintw(y+9, x, "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+}
+/*
+           Ya...___|__..aab     .   .    
+            Y88a  Y88o  Y88a   (     )   
+             Y88b  Y88b  Y88b   `.oo'    
+             :888  :888  :888  ( (`-'    
+    .---.    d88P  d88P  d88P   `.`.     
+   / .-._)  d8P'"""|"""'-Y8P      `.`.   
+  ( (`._) .-.  .-. |.-.  .-.  .-.   ) )  
+   \ `---( O )( O )( O )( O )( O )-' /   
+    `.    `-'  `-'  `-'  `-'  `-'  .' CJ 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/

@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
-using std::string;
+#include <vector>
+using namespace std;
 
 class Crewmate {
   public:
@@ -22,9 +23,9 @@ class Crewmate {
     static Crewmate generateEnemy(int);
     virtual int getCR()const;
     bool isValid();
-    void damage(int);
+    void damage(int, vector<string>*);
     virtual void printInfo();
-    virtual void specialEffects() {}; //keep this empty, it's meant to be overloaded by subclasses
+    virtual void specialEffects(vector<string>*) {}; //keep this empty, it's meant to be overloaded by subclasses
     int* getStats()const;
 };
 
@@ -49,11 +50,11 @@ class Weapon {
     static Weapon generateEnemy(int);
     virtual int getCR()const;
     bool isValid();
-    void damage(int);
+    void damage(int, vector<string>*);
     bool rollHit();
     int repair();
     int getRepairCost();
-    virtual bool attack();
+    virtual bool attack(vector<string>*);
     bool assignCrew(int, Crewmate*);
     bool unassignCrew(int);
     void unsetTarget();
@@ -61,7 +62,7 @@ class Weapon {
     int* getStats()const;
     Crewmate** getAssigned();
     virtual void printInfo();
-    virtual void specialEffects() {}; //keep this empty, it's meant to be overloaded by subclasses
+    virtual void specialEffects(vector<string>*) {}; //keep this empty, it's meant to be overloaded by subclasses
     bool isOperational(bool);
 };
 
@@ -88,7 +89,7 @@ class Ship {
     void operator=(const Ship&);
 
     bool isValid()const;
-    void damage (int, Weapon*);
+    void damage (int, Weapon*, vector<string>*);
     void sellLoot();
     int repair();
     int getRepairCost();
@@ -98,9 +99,9 @@ class Ship {
     bool addWeapon(Weapon*);
     bool switchCrew(int, Crewmate*);
     bool switchWeapon(int, Weapon*);
-    virtual void runAttacks();
+    virtual void runAttacks(vector<string>*);
     virtual void printInfo();
     Crewmate** getCrew();
     Weapon** getWeapons();
-    virtual void specialEffects() {}; //keep this empty, it's meant to be overloaded by subclasses
+    virtual void specialEffects(vector<string>*) {}; //keep this empty, it's meant to be overloaded by subclasses
 };
