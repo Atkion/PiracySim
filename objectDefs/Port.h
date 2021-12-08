@@ -11,7 +11,7 @@ class Port {
 
         Port();
 
-        void enterPort(Ship *);
+        void enterPort(Ship *, void *);
         void printMenu(Ship *, int);
         void printShip(int, int);
         void printWeaponShop(Ship *, int, int, bool);

@@ -194,7 +194,7 @@ void Map::moveShip(int xAmount, int yAmount)
                 if (x == ix + island->getPort().second && y == iy + island->getPort().first)
                 {
                     Port port;
-                    port.enterPort(ship);
+                    port.enterPort(ship, (void*)this);
                 }
             }
         }

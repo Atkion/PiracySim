@@ -283,6 +283,9 @@ void CombatHandler::printConfigMenu(int h, int h2=0, int h3=0, int h4=0, int mod
 }
 
 void CombatHandler::flee() {
-    combatLog.push_back("Got away successfully!");
+    if (playerShip->getCR() > enemyShip->getCR()) {
+        combatLog.push_back("Got away successfully!");
+    }
+    
     //go back into map screen
 }

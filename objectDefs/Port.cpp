@@ -3,6 +3,7 @@
 #include "CoreObjects.h"
 #include "SpecialObjects.h"
 #include "../PDCurses/curses.h"
+#include "../Map.h"
 
 #include <iostream>
 #include <cstdio>
@@ -38,11 +39,12 @@ Port::Port() {
     
 }
 
-void Port::enterPort(Ship *ship) { //The main method to call from the map screen. All other port methods will be called from here.
+void Port::enterPort(Ship *ship, void *map) { //The main method to call from the map screen. All other port methods will be called from here.
     initscr();
     start_color();
     keypad(stdscr, TRUE);
     printMenu(ship, 1);
+    ((Map*)map)->enterMap();
 }
 
 void Port::printMenu(Ship *ship, int highlighted) {
