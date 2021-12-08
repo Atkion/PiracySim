@@ -236,7 +236,7 @@ void Map::printMapView(int x, int y, int width, int height)
             for (auto island = islands.begin(); island != islands.end(); ++island)
             {
 
-                if (x + j == island->getLocation().first && y + i == island->getLocation().second)
+                if (x + j == island->getLocation().first && y + i  == island->getLocation().second)
                 {
                     attron(COLOR_PAIR(3));
                     for (int a = 0; a < island->islandSize; a++)
@@ -246,15 +246,15 @@ void Map::printMapView(int x, int y, int width, int height)
                             if ((island->islandMap[a][b]) == true)
                             {
                                 // mvaddch(j + a, i + b, ' ');
-                                mvaddch(j + a, (i + b), ' ');
-                                // mvaddch(j + a, (i + b) * 2 + 1, ' ');
+                                mvaddch(j + a, (i + b) * 2, ' ');
+                                mvaddch(j + a, (i + b) * 2 + 1, ' ');
                             }
                             else if (island->getPort().first == b && island->getPort().second == a)
                             {
                                 attroff(COLOR_PAIR(3));
                                 attron(COLOR_PAIR(4));
-                                mvaddch(j + a, (i + b), ' ');
-                                // mvaddch(j + a, (i + b) * 2 + 1, ' ');
+                                mvaddch(j + a, (i + b) * 2, ' ');
+                                mvaddch(j + a, (i + b) * 2 + 1, ' ');
                                 attroff(COLOR_PAIR(4));
                                 attron(COLOR_PAIR(3));
                             }
@@ -266,8 +266,8 @@ void Map::printMapView(int x, int y, int width, int height)
             if ((x + j) == shipLocation.first && (y + i) == shipLocation.second)
             {
                 attron(COLOR_PAIR(2));
-                mvaddch(j, i, ' ');
-                // mvaddch(j, i * 2 + 1, ' ');
+                mvaddch(j, i * 2, ' ');
+                mvaddch(j, i * 2 + 1, ' ');
                 attroff(COLOR_PAIR(2));
             }
         }

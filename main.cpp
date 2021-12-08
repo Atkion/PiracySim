@@ -102,8 +102,9 @@ int main (void)
     --------------------------------------------*/
   Map map(1000, 1000, &BastardsGreed);
   map.addShipLocation(500, 500);
-  map.generateIsland(490, 510);
-  map.generateIsland(490, 530);
+  map.generateIsland(480, 490);
+  map.generateIsland(490, 540);
+  map.generateIsland(500, 515);
 
   int i; cin >> i;
   // map.printMapView(480, 480, 40, 40);
