@@ -278,6 +278,7 @@ void Map::printMapView(int x, int y, int width, int height)
 void Map::enterMap()
 {
     initscr();
+    printMapView(480, 480, 0, 0);
   keypad(stdscr, TRUE);
   int ch;
   ch = getch();
