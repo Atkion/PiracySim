@@ -1,4 +1,3 @@
-//#define _GLIBCXX_USE_CXX11_ABI 0
 #include "WindowSetup.h"
 #include "objectDefs/CoreObjects.h"
 #include "objectDefs/SpecialObjects.h"
@@ -19,7 +18,7 @@ int main (void)
   setupGameWindow();
   //220 characters wide
   //60 lines tall
-  Ship BastardsGreed (1000, 20, 4, 10, 1200, "The Bastard's Greed", "Boat");
+  Ship BastardsGreed (1000, 20, 4, 10, 1200, "The Bastard's Greed", "Boat"); //Setup the demo objects
   BastardsGreed.balance = 1234; BastardsGreed.cargoHeld = 400;
 
   Crewmate Rhys (60, 25, 0, 60, "Rhys", "Listless Paladin");
@@ -41,18 +40,6 @@ int main (void)
   for (int i=0; i<5; i++) BastardsGreed.addCrew(&crew[i]);
   for (int i=0; i<3; i++) BastardsGreed.addWeapon(&weapons[i]);
 
-  /*Ballista.assignCrew(0, &Rhys); Ballista.assignCrew(1, &Creak); Cannon.assignCrew(0, &Azure); Ballista2.assignCrew(0, &Aiirbjorne); 
-  Cannon.assignCrew(0, &ChaCha); //Replace Azure with ChaCha, so Azure is no longer busy but is still on the ship
-
-  Weapon CannonReplacement (50, 10, 15, 15, 1, "Cannon 2", "Basic Side Cannon 2");
-  BastardsGreed.switchWeapon(2, &CannonReplacement); //Replace Cannon with Cannon 2, Cannon is no longer on the ship.
-  //Note that this last line unassigns ChaCha from Cannon, and assigns him to Cannon 2. This should only be called from port.
-  Crewmate Braids (20, 0, 95, 0, "Braids", "Feverish Artificer");
-  BastardsGreed.switchCrew(3, &Braids); //Replace ChaCha with Braids, ChaCha is no longer on the ship.
-  //Note that this last line unassigns ChaCha from Cannon2 and BastardsGreed, and assigns Braids in his place. This should only be called from port,
-  //UNLESS we implement the ability to recruit survivors from defeated enemy ships? Is this worth doing? Maybe only add them to empty crew slots, because we'd have to throw an existing crewmate overboard to use this at sea lol*/
-
-
   int wCR, cCR = 0;
   Ship EnemyShip = BastardsGreed.generateEncounter(&wCR, &cCR); //This also sets the values for wCR and cCR
   Crewmate* enemyCrew = new Crewmate[EnemyShip.crewmateSlots];
@@ -72,30 +59,9 @@ int main (void)
     EnemyShip.addCrew(&enemyCrew[i]);
     cCR -= crewmateCR;
   }
-  //BastardsGreed.printInfo();
-  /*Ship EnemyShip (1500, 20, 4, 10, 1200, "Enemy Ship", "Enemy Ship"); //Crewmate usually dies if RNG favors, testing weapons breaking and crewmates dying. Also tests accuracy RNG, seems to work okay so far (need to be more liberal on acc bonuses tho)
-  Weapon EnemyCannon (1000, 140, 15, 15, 1, "Enemy Cannon", "Enemy Cannon");
-  Crewmate EnemyCrew (200, 5, 40, 10, "Enemy Crewmate", "Enemy Crewmate");
-  EnemyShip.addCrew(&EnemyCrew); EnemyShip.addWeapon(&EnemyCannon); /*EnemyCannon.assignCrew(0, &EnemyCrew); //Enemy ship setup
-
-  Ballista.setTarget(&EnemyCannon); Ballista2.setTarget(&EnemyCannon); Cannon.setTarget(&EnemyCannon); //Setting sights on enemy cannon
-  EnemyCannon.setTarget(&Ballista);
-  BastardsGreed.autoConfigure(&EnemyShip); 
-  EnemyShip.autoConfigure(&BastardsGreed);
-
-  BastardsGreed.runAttacks(); 
-  EnemyShip.runAttacks();
   
-  EnemyShip.printInfo();
-  BastardsGreed.printInfo();
-
-  // int i; cin >> i;
-  BastardsGreed.printInfo();*/
   CombatHandler encounter(&BastardsGreed, &EnemyShip);
   encounter.enterCombat();
-
-  // Port thePort; //This should be all you have to do from the map screen, everything else is handled internally
-  // thePort.enterPort(&BastardsGreed);
 
   /*-------------------------------------------- 
     |             Map initialization            |
@@ -105,25 +71,6 @@ int main (void)
   map.generateIsland(480, 490);
   map.generateIsland(490, 540);
   map.generateIsland(500, 515);
-
-  int i; cin >> i;
-  // map.printMapView(480, 480, 40, 40);
-  // map.moveShip(1,1);
-  // map.printMapView(480, 480, 40, 40);
-  // map.moveShip(1,1);
-  // map.printMapView(480, 480, 40, 40);
-
-   //This is just to keep the console open because nothing else keeps the game running yet
-  // initscr();
-  // for (int i=0; i<10;i++) beep(); //https://github.com/wmcbrine/PDCurses/blob/master/docs/MANUAL.md for documentation on this shit
-  // chtype test(1);
-  // start_color();
-  // init_pair(1, COLOR_RED, COLOR_BLUE);
-  // attron(COLOR_PAIR(1));
-  // for (int i = 0; i < 500; i++) addstr("This is a test!");
-  // mvprintw(10, 10, "test");
-  // refresh();
-  // int i; cin >> i;
 
   map.enterMap();
 }

@@ -33,8 +33,8 @@ class Weapon {
   protected: 
     int atkDamage, accuracy, armorRating, health;
     Crewmate **assignedCrew;
-    bool operational;
   public:
+    bool operational;
     void* ship; //see above where I do the same thing
     int maxHealth, crewmateSlots;
     string name, desc, special;

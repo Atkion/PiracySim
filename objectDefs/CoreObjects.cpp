@@ -271,6 +271,7 @@ Ship::Ship(const Ship& s) {
   maxHealth=stats[1]; crewmateSlots = stats[3]; name = s.name; desc = s.desc;
   armorRating = stats[2]; weaponSlots = s.weaponSlots;
   health = stats[0]; specialType = s.specialType; 
+  cargoHeld = s.cargoHeld; cargoSize = s.cargoSize; balance = s.balance;
   crew = new Crewmate*[crewmateSlots];
   weapons = new Weapon*[weaponSlots];
   for (int i=0; i<crewmateSlots; i++) crew[i] = nullptr;
@@ -280,8 +281,8 @@ Ship::Ship(const Ship& s) {
 void Ship::operator=(const Ship& s) {
   int* stats = s.getStats();
   maxHealth=stats[1]; crewmateSlots = stats[3]; name = s.name; desc = s.desc;
-  armorRating = stats[2];
-  health = stats[0]; specialType = s.specialType; 
+  armorRating = stats[2]; cargoHeld = s.cargoHeld; cargoSize = s.cargoSize;
+  health = stats[0]; specialType = s.specialType;  balance = s.balance;
   crew = new Crewmate*[crewmateSlots];
   weapons = new Weapon*[weaponSlots];
   for (int i=0; i<crewmateSlots; i++) crew[i] = nullptr;
@@ -292,7 +293,7 @@ void Ship::damage (int atkdmg, Weapon *target, vector<string> *combatLog) { //fo
   health -= ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0);
   combatLog->push_back(name + " has been hit and taken " + to_string((atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0) + " damage.");
   //cout << name << " has been hit and has taken " << ( (atkdmg - armorRating >= 0) ? atkdmg - armorRating : 0) << " damage. ";
-  combatLog->push_back("Target hit: " + target->name + ".");
+  //combatLog->push_back("Target hit: " + target->name + ".");
   //cout << "Target hit: " << target->name << "\n";
   if (health <= 0) {
     /*Send Game Over state somehow */
@@ -470,12 +471,14 @@ Ship Ship::generateEncounter(int* outerWCR, int* outerCCR) {//TODO: Make this, p
   int wSlots = 1 + rand()%(int)(wCR/200); wCR -= wSlots*4;
   int cSlots = wSlots + rand()%(int)(cCR/100); cCR -= cSlots*2;
 
-  int cargo = CR * (((rand()%100) + 50)/100);
+  int cargo = CR/100*(rand()%100);
 
   string n = "GeneratedEnemy"; string d = "Placeholder"; //TODO: get these to read from the flavortext files
   Ship enemyShip(hp, ar, wSlots, cSlots, cargo, n, d);
 
   *outerWCR = wCR; *outerCCR = cCR;
+  enemyShip.balance = 142;
+  enemyShip.cargoHeld = cargo/100*(rand()%100);
   return enemyShip;
 }
 

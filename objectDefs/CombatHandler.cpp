@@ -118,7 +118,8 @@ void CombatHandler::printCombatMenu(int h) {
                     playerShip->runAttacks(&combatLog);
                     enemyShip->autoConfigure(playerShip);
                     enemyShip->runAttacks(&combatLog);
-                    printCombatMenu(1);
+                    if (!checkGameState())
+                        printCombatMenu(1);
                     break;
                 case 2:
                     printConfigMenu(1, 0, 0, 0, 0);
@@ -282,10 +283,97 @@ void CombatHandler::printConfigMenu(int h, int h2=0, int h3=0, int h4=0, int mod
 
 }
 
+bool CombatHandler::checkGameState() { //returns true if the encounter is over.
+    int crew =0, weapons =0;
+    for (int i=0; i<playerShip->crewmateSlots; i++) 
+        if (playerShip->getCrew()[i]->isValid())
+            crew++;
+    for (int i=0; i<playerShip->weaponSlots; i++) 
+        if (playerShip->getWeapons()[i]->isValid() && playerShip->getWeapons()[i]->operational)
+            weapons++;
+    
+    if (crew == 0 || weapons == 0 || playerShip->health <= 0) {
+        lose();
+        return true;
+    }
+
+    crew=0, weapons=0;
+    for (int i=0; i<enemyShip->crewmateSlots; i++) 
+        if (enemyShip->getCrew()[i]->isValid())
+            crew++;
+    for (int i=0; i<enemyShip->weaponSlots; i++) 
+        if (enemyShip->getWeapons()[i]->isValid() && enemyShip->getWeapons()[i]->operational)
+            weapons++;
+    
+    if (crew == 0 || weapons == 0 || enemyShip->health <= 0) {
+        win();
+        return true;
+    }
+
+    return false;
+}
+
+void CombatHandler::lose() {
+    combatLog.push_back(" ");
+    combatLog.push_back("Your ship is incapacitated! You lose!");
+
+    int row, col;
+    getmaxyx(stdscr,row,col);
+    float logScale = 0.7;
+    for (int r = combatLog.size()-1, i=row-1; i>0 && r>=0; i--, r--) {
+        mvaddch(i, col*logScale+1, ' '); for (int j=0; j<col-(col*logScale+1); j++) addch(' ');
+        mvprintw(i, col*logScale+1, combatLog[r].c_str());
+    }
+    refresh();
+
+    int ch;
+    while(true) ch = getch(); //Pause forever, it's game over and nothing can be done except restart the game.
+}
+
+void CombatHandler::win() {
+    combatLog.push_back(" ");
+    combatLog.push_back("You've won the battle!");
+    combatLog.push_back("Looted " + to_string(enemyShip->balance) + " gold and " + to_string(enemyShip->cargoHeld) + " worth of items.");
+
+    playerShip->cargoHeld += enemyShip->cargoHeld;
+    playerShip->balance += enemyShip->balance;
+    if (playerShip->cargoHeld > playerShip->cargoSize) playerShip->cargoHeld = playerShip->cargoSize;
+
+    int row, col;
+    getmaxyx(stdscr,row,col);
+    float logScale = 0.7;
+    for (int r = combatLog.size()-1, i=row-1; i>0 && r>=0; i--, r--) {
+        mvaddch(i, col*logScale+1, ' '); for (int j=0; j<col-(col*logScale+1); j++) addch(' ');
+        mvprintw(i, col*logScale+1, combatLog[r].c_str());
+    }
+    refresh();
+
+    int ch;
+    ch = getch(); //Pause for one input so they can read the log
+    //go back into map screen
+}
+
+
 void CombatHandler::flee() {
     if (playerShip->getCR() > enemyShip->getCR()) {
         combatLog.push_back("Got away successfully!");
     }
-    
+    else {
+        combatLog.push_back("Failed to get away!");
+        printCombatMenu(4);
+        return;
+    }
+
+    int row, col;
+    getmaxyx(stdscr,row,col);
+    float logScale = 0.7;
+    for (int r = combatLog.size()-1, i=row-1; i>0 && r>=0; i--, r--) {
+        mvaddch(i, col*logScale+1, ' '); for (int j=0; j<col-(col*logScale+1); j++) addch(' ');
+        mvprintw(i, col*logScale+1, combatLog[r].c_str());
+    }
+    refresh();
+
+    int ch;
+    ch = getch(); //Pause for one input so they can read the log
     //go back into map screen
 }

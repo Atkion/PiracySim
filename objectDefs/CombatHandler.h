@@ -26,6 +26,7 @@ class CombatHandler {// A combat handler represents an encounter, and the action
         void printCombatMenu(int);
         void printInfoMenu();
         void printConfigMenu(int, int, int, int, int);
+        bool checkGameState();
         void printShip(int, int);
         void win(); 
         void lose();
