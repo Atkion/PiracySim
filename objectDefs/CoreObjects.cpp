@@ -498,7 +498,7 @@ int Ship::getCR() const{
 void Ship::autoConfigure(Ship* enemyShip) {//Meant to be a shortcut for configuration in battle. I imagine it'll be a hassle to test encounters if we have to set everything every time.
   for (int i=0; i<weaponSlots; i++) { //Try to make sure every weapon has at least one crewmate
     for (int j=0; j<crewmateSlots; j++) {
-      if (weapons[i]->isValid() && weapons[i]->getStats()[0] > 0 && weapons[i]->getStats()[4] == 0 && !crew[j]->occupied) {
+      if (weapons[i]->isValid() && weapons[i]->getStats()[0] > 0 && weapons[i]->getStats()[4] == 0 && crew[j]->isValid() && !crew[j]->occupied) {
         weapons[i]->assignCrew(0, crew[j]);
       }
     }

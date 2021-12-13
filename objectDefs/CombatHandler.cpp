@@ -327,6 +327,10 @@ void CombatHandler::lose() {
     refresh();
 
     int ch;
+    ch = getch();
+    clear();
+    mvprintw(row/2, (col-9)/2, "Game Over");
+    refresh();
     while(true) ch = getch(); //Pause forever, it's game over and nothing can be done except restart the game.
 }
 
